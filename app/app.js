@@ -550,32 +550,14 @@ SELECT ?s
   (SAMPLE(?postalVal) AS ?postal)
   (SAMPLE(?cityVal) AS ?city)
   (SAMPLE(?freeVal) AS ?free)
+  (SAMPLE(?telVal) AS ?telephone)
+  (SAMPLE(?urlVal) AS ?url)
+  (SAMPLE(?menuVal) AS ?hasMenu)
   (SAMPLE(?imgUrl) AS ?img)
   (GROUP_CONCAT(DISTINCT ?imgUrl; separator="|") AS ?imgs)
   (GROUP_CONCAT(DISTINCT ?type; separator=",") AS ?types)
 WHERE {${geoFilter}
-  VALUES ?targetType {
-    schema:TouristAttraction
-    schema:OutletStore
-    schema:ShoppingCenter
-    schema:Brewery
-    schema:Winery
-    schema:Distillery
-    schema:FoodEstablishment
-    schema:BarOrPub
-    schema:Restaurant
-    schema:Museum
-    schema:Castle
-    schema:DaySpa
-    schema:Playground
-    schema:AmusementPark
-    schema:WaterPark
-    schema:Zoo
-    schema:PublicSwimmingPool
-    schema:Park
-    schema:NatureReserve
-  }
-  ?s a ?targetType .
+  ?s a schema:Winery .
   OPTIONAL { ?s a ?type }
   ?s schema:name ?nameDe .
   FILTER(lang(?nameDe) = "de" || lang(?nameDe) = "")
@@ -594,6 +576,9 @@ WHERE {${geoFilter}
     OPTIONAL { ?addr schema:postalCode ?postalVal }
     OPTIONAL { ?addr schema:addressLocality ?cityVal }
   }
+  OPTIONAL { ?s schema:telephone ?telVal }
+  OPTIONAL { ?s schema:url ?urlVal }
+  OPTIONAL { ?s schema:hasMenu ?menuVal }
   OPTIONAL { ?s schema:isAccessibleForFree ?freeVal }
   OPTIONAL {
     ?s schema:image ?imgObj .
@@ -605,7 +590,7 @@ LIMIT 300`;
 }
 
 function convertSparqlBindingToPoi(b) {
-  const types = b.types && b.types.value ? b.types.value.split(",") : ["https://schema.org/TouristAttraction"];
+  const types = b.types && b.types.value ? b.types.value.split(",") : ["https://schema.org/Winery"];
   let images = [];
   if (b.imgs && b.imgs.value) {
     const urls = b.imgs.value.split("|").map(u => u.trim()).filter(Boolean);
@@ -617,7 +602,7 @@ function convertSparqlBindingToPoi(b) {
   return {
     "@id": b.s ? b.s.value : "",
     "@type": types,
-    "schema:name": b.name ? b.name.value : "Sehenswürdigkeit",
+    "schema:name": b.name ? b.name.value : "Weingut",
     "schema:description": b.desc ? b.desc.value : "",
     "schema:geo": (b.lat && b.lng) ? {
       "@type": "GeoCoordinates",
@@ -630,6 +615,9 @@ function convertSparqlBindingToPoi(b) {
       "schema:postalCode": b.postal ? b.postal.value : "",
       "schema:addressLocality": b.city ? b.city.value : ""
     },
+    "schema:telephone": b.telephone ? b.telephone.value : "",
+    "schema:url": b.url ? b.url.value : "",
+    "schema:hasMenu": b.hasMenu ? b.hasMenu.value : "",
     "schema:image": images.length > 1 ? images : (images[0] || null),
     "schema:isAccessibleForFree": b.free ? (b.free.value === "true" || b.free.value === "1") : undefined
   };
@@ -642,20 +630,20 @@ async function loadDztData(state) {
   if (isLocalhost) {
     const localDemos = await getLocalDemoPoisFallback(state);
     if (localDemos.length > 0) {
-      console.info("Lokale Entwicklung: Verwende Demo-POIs aus assets/demo-pois.json.");
+      console.info("Lokale Entwicklung: Verwende Demo-Weingüter aus assets/demo-weingueter.json.");
       return localDemos;
     }
   }
 
   // SessionStorage-Cache prüfen (beschleunigt Kaltstart & Reloads auf Mobile und Desktop drastisch)
-  const cacheKey = `sw_dzt_cache_v1_${state.lat.toFixed(4)}_${state.lng.toFixed(4)}_${state.umkreis}`;
+  const cacheKey = `wg_dzt_cache_v1_${state.lat.toFixed(4)}_${state.lng.toFixed(4)}_${state.umkreis}`;
   try {
     const cachedEntry = sessionStorage.getItem(cacheKey);
     if (cachedEntry) {
       const parsed = JSON.parse(cachedEntry);
       const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 Stunden Gültigkeit
       if (parsed && parsed.timestamp && (Date.now() - parsed.timestamp < CACHE_TTL_MS) && Array.isArray(parsed.data) && parsed.data.length > 0) {
-        console.info(`DZT-Daten aus Session-Cache geladen (${parsed.data.length} POIs)`);
+        console.info(`DZT-Daten aus Session-Cache geladen (${parsed.data.length} Weinorte)`);
         return parsed.data;
       }
     }
@@ -736,7 +724,7 @@ async function getLocalDemoPoisFallback(state) {
     return state.config.demoPois;
   }
   try {
-    const res = await fetch("assets/demo-pois.json");
+    const res = await fetch("assets/demo-weingueter.json");
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) return data;
@@ -755,91 +743,40 @@ function getOdasAppBasePath() {
 // ===========================================================================
 // Klassifikation & Normalisierung
 // ===========================================================================
+// Klassifikation & Normalisierung für Weingüter & Weingenuss
+// ===========================================================================
 
-function classifyKidsFriendly(poi) {
-  if (!poi) return false;
-  const types = Array.isArray(poi["@type"]) ? poi["@type"] : [poi["@type"] || ""];
-  const typeStr = types.join(" ").toLowerCase();
-  
-  const kidsTypes = ["playground", "amusementpark", "waterpark", "zoo", "aquarium", "themepark"];
-  if (kidsTypes.some(t => typeStr.includes(t))) {
-    return true;
+function classifyWinery(item) {
+  if (!item) return ['weingut'];
+  const name = String(item['schema:name'] || item.name || '').toLowerCase();
+  const desc = String(item['schema:description'] || item.desc || item.description || '').toLowerCase();
+  const text = `${name} ${desc}`;
+  const types = [];
+
+  if (/besen|strau[ßs]|hecke|besenwirtschaft|wengert h[äa]usle|besenkultur/.test(text)) {
+    types.push('besen');
+  }
+  if (/vinothek|weinverkauf|weinhandlung|wein- und sektverkauf/.test(text)) {
+    types.push('vinothek');
+  }
+  if (/weinstube|ausschank|gastst[äa]tte|sch[äa]nke|k[üu]fer/.test(text)) {
+    types.push('weinstube');
+  }
+  if (/weinprobe|verkostung|tasting|degustation|kellerf[üu]hrung/.test(text)) {
+    types.push('probe');
+  }
+  if (/weingut|winzer|kellerei|weing[äa]rtner|rebland|weinbau/.test(text) || types.length === 0) {
+    types.push('weingut');
   }
 
-  // Schema-Property: audience oder typicalAgeRange
-  const audience = poi["schema:audience"] || poi["audience"];
-  if (audience) {
-    const audStr = JSON.stringify(audience).toLowerCase();
-    if (audStr.includes("kinder") || audStr.includes("family") || audStr.includes("familie") || audStr.includes("child")) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function classifyWeatherType(poi) {
-  if (!poi) return "hybrid";
-  const types = Array.isArray(poi["@type"]) ? poi["@type"] : [poi["@type"] || ""];
-  const typeStr = types.join(" ").toLowerCase();
-
-  const indoorTypes = [
-    "museum", "artgallery", "church", "placeofworship", "civicstructure", 
-    "dayspa", "publicswimmingpool", "library", "aquarium"
-  ];
-  if (indoorTypes.some(t => typeStr.includes(t))) return "indoor";
-
-  const outdoorTypes = [
-    "park", "landform", "hikingtrail", "trail", "naturereserve", 
-    "campground", "playground", "mountain", "beach"
-  ];
-  if (outdoorTypes.some(t => typeStr.includes(t))) return "outdoor";
-
-  return "hybrid";
-}
-
-function isFreeAdmission(poi) {
-  if (!poi) return false;
-  const val = poi["schema:isAccessibleForFree"];
-  if (typeof val === "boolean") return val;
-  if (typeof val === "string") return val.toLowerCase() === "true" || val === "1";
-  if (typeof val === "object" && val && val["@value"] !== undefined) {
-    return String(val["@value"]).toLowerCase() === "true";
-  }
-  return false;
-}
-
-function classifyOutlet(poi) {
-  if (!poi) return false;
-  const types = Array.isArray(poi["@type"]) ? poi["@type"] : [poi["@type"] || ""];
-  const typeStr = types.join(" ").toLowerCase();
-  
-  const outletTypes = ["outletstore", "shoppingcenter", "factoryoutlet"];
-  return outletTypes.some(t => typeStr.includes(t));
-}
-
-function classifyCulinary(poi) {
-  if (!poi) return false;
-  const types = Array.isArray(poi["@type"]) ? poi["@type"] : [poi["@type"] || ""];
-  const typeStr = types.join(" ").toLowerCase();
-
-  // Sakralbauten / Kirchen sind NIEMALS Kulinarik/Genuss
-  if (typeStr.includes("placeofworship") || typeStr.includes("church")) {
-    return false;
-  }
-
-  const culinaryTypes = [
-    "brewery", "winery", "distillery", "foodestablishment", 
-    "barorpub", "restaurant", "culinaryexperience"
-  ];
-  return culinaryTypes.some(t => typeStr.includes(t));
+  return types;
 }
 
 function normalizeDztPoi(rawPoi, refLat, refLng) {
   if (!rawPoi) return null;
 
   const id = rawPoi["@id"] || `poi_${Math.random().toString(36).substr(2, 9)}`;
-  const name = typeof rawPoi["schema:name"] === "object" ? (rawPoi["schema:name"]["@value"] || "") : (rawPoi["schema:name"] || "Sehenswürdigkeit");
+  const name = typeof rawPoi["schema:name"] === "object" ? (rawPoi["schema:name"]["@value"] || "") : (rawPoi["schema:name"] || "Weingut");
   
   let description = "";
   if (Array.isArray(rawPoi["schema:description"])) {
@@ -919,8 +856,10 @@ function normalizeDztPoi(rawPoi, refLat, refLng) {
     distanceKm = Math.round(R * c * 10) / 10;
   }
 
-  const isOutlet = classifyOutlet(rawPoi);
-  const isCulinary = classifyCulinary(rawPoi);
+  const wineCategories = classifyWinery(rawPoi);
+  const telephone = rawPoi["schema:telephone"] || rawPoi.telephone || "";
+  const url = rawPoi["schema:url"] || rawPoi.url || "";
+  const hasMenu = rawPoi["schema:hasMenu"] || rawPoi.hasMenu || "";
 
   return {
     id,
@@ -937,12 +876,16 @@ function normalizeDztPoi(rawPoi, refLat, refLng) {
     imageCopyright,
     images,
     distanceKm,
-    isKidsFriendly: classifyKidsFriendly(rawPoi),
-    weatherType: classifyWeatherType(rawPoi),
-    isFree: isFreeAdmission(rawPoi),
-    isOutlet,
-    isCulinary,
-    category: isOutlet ? "outlet" : (isCulinary ? "culinary" : "attraction"),
+    telephone,
+    url,
+    hasMenu,
+    wineCategories,
+    isWeingut: wineCategories.includes('weingut'),
+    isVinothek: wineCategories.includes('vinothek'),
+    isBesen: wineCategories.includes('besen'),
+    isWeinstube: wineCategories.includes('weinstube'),
+    isProbe: wineCategories.includes('probe'),
+    category: wineCategories[0] || "weingut",
     raw: rawPoi
   };
 }
