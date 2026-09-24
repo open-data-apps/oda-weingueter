@@ -1,5 +1,5 @@
 /*
- * Sehenswürdigkeiten – App-Logik (DZT Knowledge Graph)
+ * Weingüter & Weingenuss – App-Logik (DZT Knowledge Graph)
  *
  * Full-Page Map & Modern Glassmorphism UI
  *  - 100vw × 100vh Edge-to-Edge Canvas
@@ -326,23 +326,17 @@ async function app(configdata = {}, enclosingHtmlDivElement) {
     sortBy: "dist_asc",
     filters: {
       search: "",
-      targetGroup: "alle", // alle | kinder
-      weather: "alle",     // alle | indoor | outdoor
-      cost: "alle",        // alle | kostenlos
-      outlet: false,       // true | false
-      culinary: false      // true | false
+      wineType: "alle" // alle | weingut | vinothek | besen | weinstube | probe
     }
   };
 
   swInstances.set(root, state);
 
   // Standard-Filter anwenden
-  if (state.standardFilter === "kinder") state.filters.targetGroup = "kinder";
-  if (state.standardFilter === "indoor") state.filters.weather = "indoor";
-  if (state.standardFilter === "outdoor") state.filters.weather = "outdoor";
-  if (state.standardFilter === "kostenlos") state.filters.cost = "kostenlos";
-  if (state.standardFilter === "outlet") state.filters.outlet = true;
-  if (state.standardFilter === "culinary") state.filters.culinary = true;
+  const stdF = state.standardFilter;
+  if (["weingut", "vinothek", "besen", "weinstube", "probe"].includes(stdF)) {
+    state.filters.wineType = stdF;
+  }
 
   // Globalen Detail-Opener registrieren
   window[`swOpenDetail_${uid}`] = (poiId) => openDetailModal(state, poiId);
@@ -381,7 +375,7 @@ async function app(configdata = {}, enclosingHtmlDivElement) {
   } catch (error) {
     if (state.disposed) return "";
     hideLoadingOverlay(state);
-    console.error("Fehler beim Laden der Sehenswürdigkeiten:", error);
+    console.error("Fehler beim Laden der Weinorte:", error);
     renderErrorMessage(state, error.message);
     return "";
   }
@@ -894,28 +888,28 @@ function normalizeDztPoi(rawPoi, refLat, refLng) {
 // Vektor SVG Drop-Pin Generator
 // ===========================================================================
 
-function createSvgPin(type, isKids, weatherType, isOutlet, isCulinary) {
-  let color = "#16a34a"; // Outdoor default
-  let glyph = "🌲";
+function createSvgPin(type, categories = []) {
+  let color = "#722F37"; // Burgundy default
+  let glyph = "🍷";
 
   if (type === "center") {
     color = "#d97706";
     glyph = "★";
-  } else if (isOutlet) {
-    color = "#c026d3";
-    glyph = "🛍️";
-  } else if (isCulinary) {
-    color = "#b91c1c";
-    glyph = "🍷";
-  } else if (isKids) {
-    color = "#ea580c";
-    glyph = "🧸";
-  } else if (weatherType === "indoor") {
-    color = "#2563eb";
-    glyph = "🏛️";
-  } else if (weatherType === "hybrid") {
-    color = "#7c3aed";
-    glyph = "✨";
+  } else if (categories.includes("besen")) {
+    color = "#15803d"; // Forest green for Besen / Strauße
+    glyph = "🌿";
+  } else if (categories.includes("vinothek")) {
+    color = "#9333ea"; // Purple for Vinotheken
+    glyph = "🍾";
+  } else if (categories.includes("weinstube")) {
+    color = "#b45309"; // Amber for Weinstuben
+    glyph = "🏮";
+  } else if (categories.includes("probe")) {
+    color = "#0284c7"; // Blue for Tasting / Wine probe
+    glyph = "🥂";
+  } else if (categories.includes("weingut")) {
+    color = "#881337"; // Deep wine red for Weingüter
+    glyph = "🍇";
   }
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 42" width="32" height="42" class="sw-svg-pin">
@@ -923,6 +917,30 @@ function createSvgPin(type, isKids, weatherType, isOutlet, isCulinary) {
     <circle cx="16" cy="15" r="9" fill="#ffffff"/>
     <text x="16" y="16" font-size="11" text-anchor="middle" dominant-baseline="central">${glyph}</text>
   </svg>`;
+}
+
+function renderWineBadges(poi) {
+  const cats = (poi && Array.isArray(poi.wineCategories) && poi.wineCategories.length > 0) ? poi.wineCategories : ["weingut"];
+  const map = {
+    weingut: '<span class="badge px-2.5 py-1.5 fs-6 fw-semibold" style="background:#881337; color:#fff;">🍇 Weingut / Winzer</span>',
+    vinothek: '<span class="badge px-2.5 py-1.5 fs-6 fw-semibold" style="background:#9333ea; color:#fff;">🍾 Vinothek</span>',
+    besen: '<span class="badge px-2.5 py-1.5 fs-6 fw-semibold" style="background:#15803d; color:#fff;">🌿 Besenwirtschaft</span>',
+    weinstube: '<span class="badge px-2.5 py-1.5 fs-6 fw-semibold" style="background:#b45309; color:#fff;">🏮 Weinstube</span>',
+    probe: '<span class="badge px-2.5 py-1.5 fs-6 fw-semibold" style="background:#0284c7; color:#fff;">🥂 Weinprobe</span>'
+  };
+  return cats.map(c => map[c] || "").filter(Boolean).join(" ");
+}
+
+function renderWineCardBadges(poi) {
+  const cats = (poi && Array.isArray(poi.wineCategories) && poi.wineCategories.length > 0) ? poi.wineCategories : ["weingut"];
+  const map = {
+    weingut: '<span class="sw-tag-badge sw-tag-weingut">🍇 Weingut</span>',
+    vinothek: '<span class="sw-tag-badge sw-tag-vinothek">🍾 Vinothek</span>',
+    besen: '<span class="sw-tag-badge sw-tag-besen">🌿 Besen</span>',
+    weinstube: '<span class="sw-tag-badge sw-tag-weinstube">🏮 Weinstube</span>',
+    probe: '<span class="sw-tag-badge sw-tag-probe">🥂 Weinprobe</span>'
+  };
+  return cats.map(c => map[c] || "").filter(Boolean).join(" ");
 }
 
 // ===========================================================================
@@ -938,8 +956,8 @@ function renderInitialLayout(state) {
 
       <!-- Schwebender Top-Banner über der Karte (Zentriert & Voll konfigurierbar) -->
       <div class="sw-top-banner" id="${u}-top-banner">
-        <h1 class="sw-top-banner-title">${escapeHtml(state.config.bannerTitel || ((state.config.titel || "Sehenswürdigkeiten") + " " + state.ort))}</h1>
-        ${state.config.bannerUntertitel !== "" ? `<p class="sw-top-banner-subtitle">${escapeHtml(state.config.bannerUntertitel || "Ausflugsziele & Highlights in unserer Region")}</p>` : ""}
+        <h1 class="sw-top-banner-title">${escapeHtml(state.config.bannerTitel || ((state.config.titel || "Weingüter & Weingenuss") + " " + state.ort))}</h1>
+        ${state.config.bannerUntertitel !== "" ? `<p class="sw-top-banner-subtitle">${escapeHtml(state.config.bannerUntertitel || "Winzerhöfe, Vinotheken & Besenwirtschaften in unserer Region")}</p>` : ""}
       </div>
 
       <!-- 2. Schwebende Map-Aktionen oben rechts (QR-Code, Foto-Katalog & Burger-Menü) -->
@@ -948,7 +966,7 @@ function renderInitialLayout(state) {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
           <span class="sw-btn-qr-text">Handy</span>
         </button>
-        <button id="${u}-catalog-toggle" class="sw-btn-catalog" title="Vollbild-Fotogalerie aller Sehenswürdigkeiten öffnen">
+        <button id="${u}-catalog-toggle" class="sw-btn-catalog" title="Vollbild-Fotogalerie aller Weinorte öffnen">
           <span id="${u}-catalog-btn-icon" class="sw-catalog-btn-icon">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
           </span>
@@ -966,7 +984,7 @@ function renderInitialLayout(state) {
           <div class="sw-cockpit-brand">
             <img src="assets/odas-app-icon.svg" class="sw-cockpit-logo" alt="Logo" onerror="this.src='favicon.png'">
             <div class="sw-cockpit-title-wrap">
-              <h1 class="sw-cockpit-title">${escapeHtml(state.config.titel || "Sehenswürdigkeiten")}</h1>
+              <h1 class="sw-cockpit-title">${escapeHtml(state.config.titel || "Weingüter & Weingenuss")}</h1>
               <p class="sw-cockpit-subtitle">${escapeHtml(state.ort)} &bull; ${state.umkreis} km Umkreis</p>
             </div>
           </div>
@@ -979,30 +997,50 @@ function renderInitialLayout(state) {
         <div class="sw-cockpit-search-area">
           <div class="sw-search-wrapper">
             <span class="sw-search-icon">🔍</span>
-            <input type="text" id="${u}-search" class="sw-search-input" placeholder="Nach Burg, Felsen, Museum suchen…" aria-label="Suche">
+            <input type="text" id="${u}-search" class="sw-search-input" placeholder="Nach Weingut, Vinothek, Besen suchen…" aria-label="Suche">
             <button id="${u}-search-clear" class="sw-search-clear" title="Suche löschen">✕</button>
           </div>
         </div>
 
-        <!-- Cockpit Filter-Pills mit Live-Zählern (2-Zeiliges Wrap-Layout) -->
+        <!-- 4-KPI Grid (Schale 4) -->
+        <div class="sw-cockpit-kpi-grid px-3 mb-2 d-flex gap-1" id="${u}-kpi-grid">
+          <div class="p-1 rounded bg-light border text-center flex-fill" title="${escapeHtml(state.config.kpiKontext1 || 'Gesamtzahl der Weinorte')}">
+            <div class="fw-bold small" id="${u}-kpi-all">-</div>
+            <div class="text-muted" style="font-size: 0.68rem;">🍷 Gesamt</div>
+          </div>
+          <div class="p-1 rounded bg-light border text-center flex-fill" title="${escapeHtml(state.config.kpiKontext2 || 'Weingüter und Winzerhöfe')}">
+            <div class="fw-bold small" id="${u}-kpi-weingut">-</div>
+            <div class="text-muted" style="font-size: 0.68rem;">🍇 Winzer</div>
+          </div>
+          <div class="p-1 rounded bg-light border text-center flex-fill" title="${escapeHtml(state.config.kpiKontext3 || 'Besenwirtschaften')}">
+            <div class="fw-bold small" id="${u}-kpi-besen">-</div>
+            <div class="text-muted" style="font-size: 0.68rem;">🌿 Besen</div>
+          </div>
+          <div class="p-1 rounded bg-light border text-center flex-fill" title="${escapeHtml(state.config.kpiKontext4 || 'Vinotheken & Weinstuben')}">
+            <div class="fw-bold small" id="${u}-kpi-vinothek">-</div>
+            <div class="text-muted" style="font-size: 0.68rem;">🍾 Vinothek</div>
+          </div>
+        </div>
+
+        <!-- Cockpit Filter-Pills mit Live-Zählern -->
         <div class="sw-filter-pills sw-cockpit-filter-pills" id="${u}-filter-pills">
-          <button class="sw-pill-btn sw-pill-kids ${state.filters.targetGroup === "kinder" ? "active" : ""}" data-filter="kinder">
-            🧸 Kinder <span class="sw-pill-count" id="${u}-count-kids">-</span>
+          <button class="sw-pill-btn sw-pill-alle ${state.filters.wineType === "alle" ? "active" : ""}" data-filter="alle">
+            🍷 Alle <span class="sw-pill-count" id="${u}-count-alle">-</span>
           </button>
-          <button class="sw-pill-btn sw-pill-indoor ${state.filters.weather === "indoor" ? "active" : ""}" data-filter="indoor">
-            🏛️ Indoor <span class="sw-pill-count" id="${u}-count-indoor">-</span>
+          <button class="sw-pill-btn sw-pill-weingut ${state.filters.wineType === "weingut" ? "active" : ""}" data-filter="weingut">
+            🍇 Weingüter <span class="sw-pill-count" id="${u}-count-weingut">-</span>
           </button>
-          <button class="sw-pill-btn sw-pill-outdoor ${state.filters.weather === "outdoor" ? "active" : ""}" data-filter="outdoor">
-            🌲 Outdoor <span class="sw-pill-count" id="${u}-count-outdoor">-</span>
+          <button class="sw-pill-btn sw-pill-vinothek ${state.filters.wineType === "vinothek" ? "active" : ""}" data-filter="vinothek">
+            🍾 Vinotheken <span class="sw-pill-count" id="${u}-count-vinothek">-</span>
           </button>
-          <button class="sw-pill-btn sw-pill-free ${state.filters.cost === "kostenlos" ? "active" : ""}" data-filter="kostenlos">
-            🏷️ Gratis <span class="sw-pill-count" id="${u}-count-free">-</span>
+          <button class="sw-pill-btn sw-pill-besen ${state.filters.wineType === "besen" ? "active" : ""}" data-filter="besen">
+            🌿 Besen <span class="sw-pill-count" id="${u}-count-besen">-</span>
           </button>
-          <button class="sw-pill-btn sw-pill-outlet ${state.filters.outlet ? "active" : ""}" data-filter="outlet">
-            🛍️ Outlets <span class="sw-pill-count" id="${u}-count-outlet">-</span>
+          <button class="sw-pill-btn sw-pill-weinstube ${state.filters.wineType === "weinstube" ? "active" : ""}" data-filter="weinstube">
+            🏮 Weinstuben <span class="sw-pill-count" id="${u}-count-weinstube">-</span>
           </button>
-          <button class="sw-pill-btn sw-pill-culinary ${state.filters.culinary ? "active" : ""}" data-filter="culinary">
-            🍷 Genuss <span class="sw-pill-count" id="${u}-count-culinary">-</span>
+          <button class="sw-pill-btn sw-pill-probe ${state.filters.wineType === "probe" ? "active" : ""}" data-filter="probe">
+            🥂 Weinproben <span class="sw-pill-count" id="${u}-count-probe">-</span>
           </button>
           <button class="sw-pill-btn sw-pill-reset" id="${u}-filter-reset" style="display: none;" title="Filter zurücksetzen">
             ↺
@@ -1011,17 +1049,16 @@ function renderInitialLayout(state) {
 
         <!-- Cockpit List Header mit Zähler & Sortierung -->
         <div class="sw-cockpit-list-header">
-          <h2 class="sw-cockpit-count-title" id="${u}-drawer-count-title">Ergebnisse (-)</h2>
+          <h2 class="sw-cockpit-count-title" id="${u}-drawer-count-title">Weinorte (-)</h2>
           <div class="sw-cockpit-controls">
             <div class="sw-filter-select-wrap" id="${u}-filter-select-wrap">
-              <select id="${u}-filter-select" class="form-select form-select-sm sw-filter-select" aria-label="Thema filtern">
-                <option value="alle">Alle Themen</option>
-                <option value="kinder">🧸 Kinder</option>
-                <option value="indoor">🏛️ Indoor</option>
-                <option value="outdoor">🌲 Outdoor</option>
-                <option value="kostenlos">🏷️ Gratis</option>
-                <option value="outlet">🛍️ Outlets</option>
-                <option value="culinary">🍷 Genuss</option>
+              <select id="${u}-filter-select" class="form-select form-select-sm sw-filter-select" aria-label="Erlebnis filtern">
+                <option value="alle">🍷 Alle Weinorte</option>
+                <option value="weingut">🍇 Weingüter</option>
+                <option value="vinothek">🍾 Vinotheken</option>
+                <option value="besen">🌿 Besenwirtschaften</option>
+                <option value="weinstube">🏮 Weinstuben</option>
+                <option value="probe">🥂 Weinproben</option>
               </select>
               <button id="${u}-filter-select-reset" class="sw-filter-select-reset" title="Filter zurücksetzen" aria-label="Filter zurücksetzen" style="display: none;">✕</button>
             </div>
@@ -1037,7 +1074,7 @@ function renderInitialLayout(state) {
         <div class="sw-cockpit-body" id="${u}-drawer-list">
           <div class="text-center py-5 text-muted">
             <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
-            <div>Lade Sehenswürdigkeiten…</div>
+            <div>Lade Weingüter & Weingenuss…</div>
           </div>
         </div>
 
@@ -1063,7 +1100,7 @@ function renderInitialLayout(state) {
             <img src="assets/odas-app-icon.svg" class="sw-loading-icon" alt="Laden…" onerror="this.src='favicon.png'">
             <div class="sw-loading-spinner-ring"></div>
           </div>
-          <h3 class="sw-loading-title">Sehenswürdigkeiten werden geladen…</h3>
+          <h3 class="sw-loading-title">Weinorte werden geladen…</h3>
           <p class="sw-loading-subtitle">DZT Knowledge Graph & OpenStreetMap &bull; ${escapeHtml(state.ort)}</p>
         </div>
       </div>
@@ -1072,8 +1109,8 @@ function renderInitialLayout(state) {
       <div id="${u}-catalog-overlay" class="sw-catalog-overlay">
         <div class="sw-catalog-header">
           <div>
-            <h2 class="h4 mb-0 fw-bold" id="${u}-catalog-title">Sehenswürdigkeiten Katalog</h2>
-            <p class="text-muted small mb-0">Alle Ausflugsziele im Umkreis von ${state.umkreis} km um ${escapeHtml(state.ort)}</p>
+            <h2 class="h4 mb-0 fw-bold" id="${u}-catalog-title">Weinorte Katalog</h2>
+            <p class="text-muted small mb-0">Alle Weingüter und Weingenuss-Ziele im Umkreis von ${state.umkreis} km um ${escapeHtml(state.ort)}</p>
           </div>
           <button id="${u}-catalog-back-btn" class="btn btn-outline-primary d-inline-flex align-items-center gap-2">
             <span>Zurück zur Karte</span>
@@ -1091,8 +1128,8 @@ function renderInitialLayout(state) {
 
       <!-- 7b. Mobiler Floating View-Switcher (nur auf Mobile sichtbar) -->
       <button id="${u}-mobile-view-toggle" class="sw-mobile-view-toggle" aria-label="Ansicht wechseln">
-        <span class="sw-mvt-icon">🏛️</span>
-        <span class="sw-mvt-text" id="${u}-mvt-text">Sehenswürdigkeiten (-)</span>
+        <span class="sw-mvt-icon">🍷</span>
+        <span class="sw-mvt-text" id="${u}-mvt-text">Weinorte (-)</span>
       </button>
 
       <!-- 8. Schale-4 Modal Container -->
@@ -1205,18 +1242,10 @@ function bindHeaderEvents(state) {
       if (!btn || btn.id === `${u}-filter-reset`) return;
 
       const filterType = btn.dataset.filter;
-      if (filterType === "kinder") {
-        state.filters.targetGroup = state.filters.targetGroup === "kinder" ? "alle" : "kinder";
-      } else if (filterType === "indoor") {
-        state.filters.weather = state.filters.weather === "indoor" ? "alle" : "indoor";
-      } else if (filterType === "outdoor") {
-        state.filters.weather = state.filters.weather === "outdoor" ? "alle" : "outdoor";
-      } else if (filterType === "kostenlos") {
-        state.filters.cost = state.filters.cost === "kostenlos" ? "alle" : "kostenlos";
-      } else if (filterType === "outlet") {
-        state.filters.outlet = !state.filters.outlet;
-      } else if (filterType === "culinary") {
-        state.filters.culinary = !state.filters.culinary;
+      if (filterType === "alle") {
+        state.filters.wineType = "alle";
+      } else {
+        state.filters.wineType = state.filters.wineType === filterType ? "alle" : filterType;
       }
 
       state.page = 0;
@@ -1232,11 +1261,7 @@ function bindHeaderEvents(state) {
   if (resetBtn) {
     resetBtn.addEventListener("click", () => {
       state.filters.search = "";
-      state.filters.targetGroup = "alle";
-      state.filters.weather = "alle";
-      state.filters.cost = "alle";
-      state.filters.outlet = false;
-      state.filters.culinary = false;
+      state.filters.wineType = "alle";
       if (searchInput) searchInput.value = "";
       if (searchClear) searchClear.style.display = "none";
       state.page = 0;
@@ -1254,20 +1279,7 @@ function bindHeaderEvents(state) {
 
   if (filterSelect) {
     filterSelect.addEventListener("change", () => {
-      const val = filterSelect.value;
-      state.filters.targetGroup = "alle";
-      state.filters.weather = "alle";
-      state.filters.cost = "alle";
-      state.filters.outlet = false;
-      state.filters.culinary = false;
-
-      if (val === "kinder") state.filters.targetGroup = "kinder";
-      else if (val === "indoor") state.filters.weather = "indoor";
-      else if (val === "outdoor") state.filters.weather = "outdoor";
-      else if (val === "kostenlos") state.filters.cost = "kostenlos";
-      else if (val === "outlet") state.filters.outlet = true;
-      else if (val === "culinary") state.filters.culinary = true;
-
+      state.filters.wineType = filterSelect.value || "alle";
       state.page = 0;
       applyFilters(state);
       updateFilterCounts(state);
@@ -1281,11 +1293,7 @@ function bindHeaderEvents(state) {
   if (filterSelectReset) {
     filterSelectReset.addEventListener("click", (e) => {
       e.stopPropagation();
-      state.filters.targetGroup = "alle";
-      state.filters.weather = "alle";
-      state.filters.cost = "alle";
-      state.filters.outlet = false;
-      state.filters.culinary = false;
+      state.filters.wineType = "alle";
       if (filterSelect) filterSelect.value = "alle";
       state.page = 0;
       applyFilters(state);
@@ -1389,9 +1397,9 @@ function exitMobileListMode(state) {
   if (mobileToggle) {
     const iconSpan = mobileToggle.querySelector(".sw-mvt-icon");
     const textSpan = mobileToggle.querySelector(".sw-mvt-text");
-    if (iconSpan) iconSpan.innerText = "🏛️";
+    if (iconSpan) iconSpan.innerText = "🍷";
     const count = state.filteredPois ? state.filteredPois.length : 0;
-    if (textSpan) textSpan.innerText = `Sehenswürdigkeiten (${count})`;
+    if (textSpan) textSpan.innerText = `Weinorte (${count})`;
   }
 
   if (state.map) {
@@ -1561,35 +1569,22 @@ function toggleCatalogMode(state, forceState) {
 // ===========================================================================
 
 function applyFilters(state) {
-  const search = state.filters.search;
-  const targetGroup = state.filters.targetGroup;
-  const weather = state.filters.weather;
-  const cost = state.filters.cost;
-  const outlet = state.filters.outlet;
-  const culinary = state.filters.culinary;
+  const search = (state.filters.search || "").trim().toLowerCase();
+  const wineType = state.filters.wineType || "alle";
 
   state.filteredPois = state.allPois.filter(poi => {
     // Freitextsuche
     if (search) {
-      const full = `${poi.name} ${poi.description} ${poi.city}`.toLowerCase();
+      const full = `${poi.name} ${poi.description} ${poi.city} ${poi.street} ${(poi.wineCategories || []).join(" ")}`.toLowerCase();
       if (!full.includes(search)) return false;
     }
 
-    // Zielgruppenfilter
-    if (targetGroup === "kinder" && !poi.isKidsFriendly) return false;
-
-    // Wetterfilter
-    if (weather === "indoor" && poi.weatherType !== "indoor") return false;
-    if (weather === "outdoor" && poi.weatherType !== "outdoor") return false;
-
-    // Kostenfilter
-    if (cost === "kostenlos" && !poi.isFree) return false;
-
-    // Outlet Filter
-    if (outlet && !poi.isOutlet) return false;
-
-    // Genuss / Kulinarik Filter
-    if (culinary && !poi.isCulinary) return false;
+    // Erlebnisfilter
+    if (wineType === "weingut" && !poi.isWeingut) return false;
+    if (wineType === "vinothek" && !poi.isVinothek) return false;
+    if (wineType === "besen" && !poi.isBesen) return false;
+    if (wineType === "weinstube" && !poi.isWeinstube) return false;
+    if (wineType === "probe" && !poi.isProbe) return false;
 
     return true;
   });
@@ -1607,127 +1602,103 @@ function applyFilters(state) {
 
 function updateFilterCounts(state) {
   const u = state.uid;
-  const search = state.filters.search;
+  const search = (state.filters.search || "").trim().toLowerCase();
 
   // Zähler berechnen unter Berücksichtigung der aktuellen Freitextsuche
-  let kids = 0, indoor = 0, outdoor = 0, free = 0, outlet = 0, culinary = 0;
+  let totalAll = 0, countWeingut = 0, countVinothek = 0, countBesen = 0, countWeinstube = 0, countProbe = 0;
   state.allPois.forEach(poi => {
     if (search) {
-      const full = `${poi.name} ${poi.description} ${poi.city}`.toLowerCase();
+      const full = `${poi.name} ${poi.description} ${poi.city} ${poi.street} ${(poi.wineCategories || []).join(" ")}`.toLowerCase();
       if (!full.includes(search)) return;
     }
-    if (poi.isKidsFriendly) kids++;
-    if (poi.weatherType === "indoor") indoor++;
-    if (poi.weatherType === "outdoor") outdoor++;
-    if (poi.isFree) free++;
-    if (poi.isOutlet) outlet++;
-    if (poi.isCulinary) culinary++;
+    totalAll++;
+    if (poi.isWeingut) countWeingut++;
+    if (poi.isVinothek) countVinothek++;
+    if (poi.isBesen) countBesen++;
+    if (poi.isWeinstube) countWeinstube++;
+    if (poi.isProbe) countProbe++;
   });
 
-  // Zähler in die Pills schreiben
-  const cKids = state.root.querySelector(`#${u}-count-kids`);
-  const cIndoor = state.root.querySelector(`#${u}-count-indoor`);
-  const cOutdoor = state.root.querySelector(`#${u}-count-outdoor`);
-  const cFree = state.root.querySelector(`#${u}-count-free`);
-  const cOutlet = state.root.querySelector(`#${u}-count-outlet`);
-  const cCulinary = state.root.querySelector(`#${u}-count-culinary`);
+  // KPIs aktualisieren (Schale 4)
+  const kpiAll = state.root.querySelector(`#${u}-kpi-all`);
+  const kpiWeingut = state.root.querySelector(`#${u}-kpi-weingut`);
+  const kpiBesen = state.root.querySelector(`#${u}-kpi-besen`);
+  const kpiVinothek = state.root.querySelector(`#${u}-kpi-vinothek`);
 
-  if (cKids) cKids.textContent = kids;
-  if (cIndoor) cIndoor.textContent = indoor;
-  if (cOutdoor) cOutdoor.textContent = outdoor;
-  if (cFree) cFree.textContent = free;
-  if (cOutlet) cOutlet.textContent = outlet;
-  if (cCulinary) cCulinary.textContent = culinary;
+  if (kpiAll) kpiAll.textContent = state.allPois.length;
+  if (kpiWeingut) kpiWeingut.textContent = state.allPois.filter(p => p.isWeingut).length;
+  if (kpiBesen) kpiBesen.textContent = state.allPois.filter(p => p.isBesen).length;
+  if (kpiVinothek) kpiVinothek.textContent = state.allPois.filter(p => p.isVinothek || p.isWeinstube).length;
 
-  // Active Klassen setzen & Tags mit 0 Treffern dynamisch ausblenden
+  // Pills Zähler schreiben
+  const cAlle = state.root.querySelector(`#${u}-count-alle`);
+  const cWeingut = state.root.querySelector(`#${u}-count-weingut`);
+  const cVinothek = state.root.querySelector(`#${u}-count-vinothek`);
+  const cBesen = state.root.querySelector(`#${u}-count-besen`);
+  const cWeinstube = state.root.querySelector(`#${u}-count-weinstube`);
+  const cProbe = state.root.querySelector(`#${u}-count-probe`);
+
+  if (cAlle) cAlle.textContent = totalAll;
+  if (cWeingut) cWeingut.textContent = countWeingut;
+  if (cVinothek) cVinothek.textContent = countVinothek;
+  if (cBesen) cBesen.textContent = countBesen;
+  if (cWeinstube) cWeinstube.textContent = countWeinstube;
+  if (cProbe) cProbe.textContent = countProbe;
+
+  // Active Klassen setzen
+  const activeType = state.filters.wineType || "alle";
   const pills = state.root.querySelectorAll(".sw-pill-btn");
   pills.forEach(p => {
     const f = p.dataset.filter;
-    let isActive = false;
-    let count = 0;
-
-    if (f === "kinder") {
-      isActive = state.filters.targetGroup === "kinder";
-      count = kids;
-    } else if (f === "indoor") {
-      isActive = state.filters.weather === "indoor";
-      count = indoor;
-    } else if (f === "outdoor") {
-      isActive = state.filters.weather === "outdoor";
-      count = outdoor;
-    } else if (f === "kostenlos") {
-      isActive = state.filters.cost === "kostenlos";
-      count = free;
-    } else if (f === "outlet") {
-      isActive = !!state.filters.outlet;
-      count = outlet;
-    } else if (f === "culinary") {
-      isActive = !!state.filters.culinary;
-      count = culinary;
-    }
-
     if (f) {
-      p.classList.toggle("active", isActive);
-      p.style.display = (count > 0 || isActive) ? "inline-flex" : "none";
+      p.classList.toggle("active", f === activeType);
     }
   });
 
-  // Reset Button sichtbar wenn mindestens ein Filter aktiv ist
-  const isAnyActive = search || state.filters.targetGroup !== "alle" || state.filters.weather !== "alle" || state.filters.cost !== "alle" || state.filters.outlet || state.filters.culinary;
+  // Reset Button sichtbar wenn Suche oder Filter aktiv
+  const isAnyActive = !!search || activeType !== "alle";
   const resetBtn = state.root.querySelector(`#${u}-filter-reset`);
   if (resetBtn) resetBtn.style.display = isAnyActive ? "inline-flex" : "none";
 
-  // Mobiles Themen-Dropdown aktualisieren
+  // Mobiles Dropdown aktualisieren
   const filterSelect = state.root.querySelector(`#${u}-filter-select`);
   const filterSelectReset = state.root.querySelector(`#${u}-filter-select-reset`);
   if (filterSelect) {
-    let activeKey = "alle";
-    if (state.filters.targetGroup === "kinder") activeKey = "kinder";
-    else if (state.filters.weather === "indoor") activeKey = "indoor";
-    else if (state.filters.weather === "outdoor") activeKey = "outdoor";
-    else if (state.filters.cost === "kostenlos") activeKey = "kostenlos";
-    else if (state.filters.outlet) activeKey = "outlet";
-    else if (state.filters.culinary) activeKey = "culinary";
-
-    filterSelect.value = activeKey;
-    filterSelect.classList.toggle("sw-filter-active", activeKey !== "alle");
-
+    filterSelect.value = activeType;
+    filterSelect.classList.toggle("sw-filter-active", activeType !== "alle");
     if (filterSelectReset) {
-      filterSelectReset.style.display = activeKey !== "alle" ? "inline-flex" : "none";
+      filterSelectReset.style.display = activeType !== "alle" ? "inline-flex" : "none";
     }
 
     const optAlle = filterSelect.querySelector('option[value="alle"]');
-    const optKids = filterSelect.querySelector('option[value="kinder"]');
-    const optIndoor = filterSelect.querySelector('option[value="indoor"]');
-    const optOutdoor = filterSelect.querySelector('option[value="outdoor"]');
-    const optFree = filterSelect.querySelector('option[value="kostenlos"]');
-    const optOutlet = filterSelect.querySelector('option[value="outlet"]');
-    const optCulinary = filterSelect.querySelector('option[value="culinary"]');
+    const optWeingut = filterSelect.querySelector('option[value="weingut"]');
+    const optVinothek = filterSelect.querySelector('option[value="vinothek"]');
+    const optBesen = filterSelect.querySelector('option[value="besen"]');
+    const optWeinstube = filterSelect.querySelector('option[value="weinstube"]');
+    const optProbe = filterSelect.querySelector('option[value="probe"]');
 
-    const totalCount = state.allPois.length;
-    if (optAlle) optAlle.textContent = `Alle Themen (${totalCount})`;
-    if (optKids) { optKids.textContent = `🧸 Kinder (${kids})`; optKids.hidden = kids === 0 && activeKey !== "kinder"; }
-    if (optIndoor) { optIndoor.textContent = `🏛️ Indoor (${indoor})`; optIndoor.hidden = indoor === 0 && activeKey !== "indoor"; }
-    if (optOutdoor) { optOutdoor.textContent = `🌲 Outdoor (${outdoor})`; optOutdoor.hidden = outdoor === 0 && activeKey !== "outdoor"; }
-    if (optFree) { optFree.textContent = `🏷️ Gratis (${free})`; optFree.hidden = free === 0 && activeKey !== "kostenlos"; }
-    if (optOutlet) { optOutlet.textContent = `🛍️ Outlets (${outlet})`; optOutlet.hidden = outlet === 0 && activeKey !== "outlet"; }
-    if (optCulinary) { optCulinary.textContent = `🍷 Genuss (${culinary})`; optCulinary.hidden = culinary === 0 && activeKey !== "culinary"; }
+    if (optAlle) optAlle.textContent = `🍷 Alle Weinorte (${totalAll})`;
+    if (optWeingut) optWeingut.textContent = `🍇 Weingüter (${countWeingut})`;
+    if (optVinothek) optVinothek.textContent = `🍾 Vinotheken (${countVinothek})`;
+    if (optBesen) optBesen.textContent = `🌿 Besenwirtschaften (${countBesen})`;
+    if (optWeinstube) optWeinstube.textContent = `🏮 Weinstuben (${countWeinstube})`;
+    if (optProbe) optProbe.textContent = `🥂 Weinproben (${countProbe})`;
   }
 
-  // Trefferzahlen in Cockpit, Rand-Lasche (Edge Tab) & mobilem Switcher
+  // Trefferzahlen in Cockpit & Tab
   const drawerCount = state.root.querySelector(`#${u}-drawer-count-title`);
   const edgeCount = state.root.querySelector(`#${u}-edge-count`);
   const mvtText = state.root.querySelector(`#${u}-mvt-text`);
   const countText = `${state.filteredPois.length}`;
 
-  if (drawerCount) drawerCount.textContent = `Ergebnisse (${countText})`;
+  if (drawerCount) drawerCount.textContent = `Weinorte (${countText})`;
   if (edgeCount) edgeCount.textContent = countText;
   if (mvtText) {
     const wrapper = state.root.querySelector(`#${u}-wrapper`);
     if (wrapper && wrapper.classList.contains("sw-mobile-mode-list")) {
       mvtText.textContent = "Karte";
     } else {
-      mvtText.textContent = `Sehenswürdigkeiten (${countText})`;
+      mvtText.textContent = `Weinorte (${countText})`;
     }
   }
 }
@@ -1807,7 +1778,7 @@ async function initLeafletMap(state) {
   // Zentrum / Heimatgemeinde Marker
   const centerIcon = L.divIcon({
     className: "sw-custom-svg-marker",
-    html: createSvgPin("center", false, "hybrid"),
+    html: createSvgPin("center", []),
     iconSize: [32, 42],
     iconAnchor: [16, 42],
     popupAnchor: [0, -42]
@@ -1834,7 +1805,7 @@ function updateMapMarkers(state) {
   state.filteredPois.forEach(poi => {
     if (!poi.lat || !poi.lng || isNaN(poi.lat) || isNaN(poi.lng)) return;
 
-    const svgHtml = createSvgPin("poi", poi.isKidsFriendly, poi.weatherType, poi.isOutlet, poi.isCulinary);
+    const svgHtml = createSvgPin("poi", poi.wineCategories);
     const pinIcon = L.divIcon({
       className: "sw-custom-svg-marker",
       html: svgHtml,
@@ -1849,11 +1820,7 @@ function updateMapMarkers(state) {
         <h6 class="fw-bold mb-1" style="font-size:0.9rem;">${escapeHtml(poi.name)}</h6>
         <div class="text-muted small mb-2">${escapeHtml(poi.city || "")} ${poi.distanceKm !== null ? `&bull; <strong>${poi.distanceKm} km</strong>` : ""}</div>
         <div class="d-flex flex-wrap gap-1 mb-2">
-          ${poi.isOutlet ? '<span class="badge" style="background:#c026d3; color:#fff; font-size:0.68rem;">🛍️ Outlet</span>' : ""}
-          ${poi.isCulinary ? '<span class="badge" style="background:#b91c1c; color:#fff; font-size:0.68rem;">🍷 Genuss</span>' : ""}
-          ${poi.isKidsFriendly ? '<span class="badge bg-warning text-dark" style="font-size:0.68rem;">🧸 Familie</span>' : ""}
-          ${poi.weatherType === "indoor" ? '<span class="badge bg-primary" style="font-size:0.68rem;">🏛️ Indoor</span>' : '<span class="badge bg-success" style="font-size:0.68rem;">🌲 Outdoor</span>'}
-          ${poi.isFree ? '<span class="badge bg-light text-dark border" style="font-size:0.68rem;">🏷️ Kostenlos</span>' : ""}
+          ${renderWineCardBadges(poi)}
         </div>
         <button class="btn btn-sm btn-primary w-100 py-1" onclick="window.swOpenDetail_${u}('${escapeHtml(poi.id)}')">
           Details ansehen
@@ -1945,7 +1912,7 @@ function renderDrawerList(state) {
         ${poi.imageUrl ? `
           <img src="${escapeHtml(poi.imageUrl)}" class="sw-card-thumb" alt="${escapeHtml(poi.name)}" loading="lazy">
         ` : `
-          <div class="sw-card-thumb-placeholder">🏛️</div>
+          <div class="sw-card-thumb-placeholder">🍷</div>
         `}
         <div class="sw-card-content">
           <div>
@@ -1954,11 +1921,7 @@ function renderDrawerList(state) {
               ${poi.city ? escapeHtml(poi.city) : ""} ${poi.distanceKm !== null ? `&bull; <strong>${poi.distanceKm} km</strong>` : ""}
             </div>
             <div class="sw-badge-row">
-              ${poi.isOutlet ? '<span class="sw-tag-badge sw-tag-outlet">🛍️ Outlet</span>' : ""}
-              ${poi.isCulinary ? '<span class="sw-tag-badge sw-tag-culinary">🍷 Genuss</span>' : ""}
-              ${poi.isKidsFriendly ? '<span class="sw-tag-badge sw-tag-kids">🧸 Familie</span>' : ""}
-              ${poi.weatherType === "indoor" ? '<span class="sw-tag-badge sw-tag-indoor">🏛️ Indoor</span>' : '<span class="sw-tag-badge sw-tag-outdoor">🌲 Outdoor</span>'}
-              ${poi.isFree ? '<span class="sw-tag-badge sw-tag-free">🏷️ Kostenlos</span>' : ""}
+              ${renderWineCardBadges(poi)}
             </div>
           </div>
           <div class="sw-card-btn-row">
@@ -1987,12 +1950,12 @@ function renderCatalogGrid(state) {
   if (!gridEl) return;
 
   const total = state.filteredPois.length;
-  if (titleEl) titleEl.textContent = `Sehenswürdigkeiten Katalog (${total})`;
+  if (titleEl) titleEl.textContent = `Weinorte Katalog (${total})`;
 
   if (total === 0) {
     gridEl.innerHTML = `
       <div class="text-center py-5 text-muted col-12">
-        <div class="h4 mb-2">Keine Sehenswürdigkeiten gefunden</div>
+        <div class="h4 mb-2">Keine Weinorte gefunden</div>
         <p class="small mb-0">Bitte Filtereinstellungen anpassen.</p>
       </div>
     `;
@@ -2008,9 +1971,9 @@ function renderCatalogGrid(state) {
       <div class="sw-catalog-card" role="button" tabindex="0" onclick="window.swOpenDetail_${u}('${escapeHtml(poi.id)}')">
         <div class="sw-catalog-img-wrap">
           ${poi.imageUrl ? `
-            <img src="${escapeHtml(poi.imageUrl)}" class="sw-catalog-img" alt="${escapeHtml(poi.name)}" ${idx < 12 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted fs-1\\'>🏛️</div>'">
+            <img src="${escapeHtml(poi.imageUrl)}" class="sw-catalog-img" alt="${escapeHtml(poi.name)}" ${idx < 12 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted fs-1\\'>🍷</div>'">
           ` : `
-            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted fs-1">🏛️</div>
+            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted fs-1">🍷</div>
           `}
           ${poi.distanceKm !== null ? `
             <span class="sw-catalog-dist-badge">${poi.distanceKm} km</span>
@@ -2021,11 +1984,7 @@ function renderCatalogGrid(state) {
           <div class="text-muted small mb-2">${poi.city ? escapeHtml(poi.city) : ""} ${poi.region ? `(${escapeHtml(poi.region)})` : ""}</div>
           <p class="sw-catalog-card-desc">${escapeHtml(poi.description || "Keine Kurzbeschreibung verfügbar.")}</p>
           <div class="sw-badge-row">
-            ${poi.isOutlet ? '<span class="sw-tag-badge sw-tag-outlet">🛍️ Outlet</span>' : ""}
-            ${poi.isCulinary ? '<span class="sw-tag-badge sw-tag-culinary">🍷 Genuss</span>' : ""}
-            ${poi.isKidsFriendly ? '<span class="sw-tag-badge sw-tag-kids">🧸 Familie</span>' : ""}
-            ${poi.weatherType === "indoor" ? '<span class="sw-tag-badge sw-tag-indoor">🏛️ Indoor</span>' : '<span class="sw-tag-badge sw-tag-outdoor">🌲 Outdoor</span>'}
-            ${poi.isFree ? '<span class="sw-tag-badge sw-tag-free">🏷️ Kostenlos</span>' : ""}
+            ${renderWineCardBadges(poi)}
           </div>
           <div class="sw-catalog-actions">
             <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="event.stopPropagation(); window.swFocusPoi_${u}('${escapeHtml(poi.id)}')">
@@ -2095,17 +2054,13 @@ function openDetailModal(state, poiId) {
 
     <div class="modal-body p-4">
       <div class="d-flex flex-wrap gap-2 mb-4">
-        ${poi.isOutlet ? '<span class="badge px-2.5 py-1.5 fs-6 fw-semibold" style="background:#c026d3; color:#fff;">🛍️ Outlet & Werksverkauf</span>' : ""}
-        ${poi.isCulinary ? '<span class="badge px-2.5 py-1.5 fs-6 fw-semibold" style="background:#b91c1c; color:#fff;">🍷 Genuss & Brauerei/Weingut</span>' : ""}
-        ${poi.isKidsFriendly ? '<span class="badge bg-warning text-dark px-2.5 py-1.5 fs-6 fw-semibold">🧸 Kinder- & Familienziel</span>' : ""}
-        ${poi.weatherType === "indoor" ? '<span class="badge bg-primary px-2.5 py-1.5 fs-6 fw-semibold">🏛️ Wetterfest (Indoor)</span>' : '<span class="badge bg-success px-2.5 py-1.5 fs-6 fw-semibold">🌲 Freiluft (Outdoor)</span>'}
-        ${poi.isFree ? '<span class="badge bg-light text-dark border px-2.5 py-1.5 fs-6 fw-semibold">🏷️ Kostenloser Eintritt</span>' : ""}
+        ${renderWineBadges(poi)}
       </div>
 
       <div class="mb-4">
-        <h5 class="fw-bold mb-2">Über dieses Ausflugsziel</h5>
+        <h5 class="fw-bold mb-2">Über dieses Weingut / diesen Weinort</h5>
         <p class="text-secondary fs-6" style="line-height: 1.7;">
-          ${escapeHtml(poi.description || "Für dieses Ziel liegt im DZT Knowledge Graph keine ausführliche Beschreibung vor.")}
+          ${escapeHtml(poi.description || "Für diesen Weinort liegt im DZT Knowledge Graph keine ausführliche Beschreibung vor.")}
         </p>
       </div>
 
@@ -2124,16 +2079,20 @@ function openDetailModal(state, poiId) {
         <div class="col-12 col-md-6">
           <div class="p-3 bg-light rounded-3 h-100 d-flex flex-column justify-content-between">
             <div>
-              <h6 class="fw-bold mb-2">Anreise & Navigation</h6>
-              <p class="small text-muted mb-2">Route in externer Karten-App öffnen:</p>
+              <h6 class="fw-bold mb-2">Kontakt & Navigation</h6>
+              <div class="small text-muted mb-2">
+                ${poi.telephone ? `<div class="mb-1"><strong>Tel:</strong> <a href="tel:${escapeHtml(poi.telephone)}" class="text-decoration-none">${escapeHtml(poi.telephone)}</a></div>` : ""}
+                ${poi.url ? `<div class="mb-1"><strong>Web:</strong> <a href="${escapeHtml(poi.url)}" target="_blank" rel="noopener noreferrer" class="text-decoration-none text-truncate d-inline-block mw-100">${escapeHtml(poi.url)}</a></div>` : ""}
+                ${poi.hasMenu ? `<div class="mb-1"><strong>Karte/Weine:</strong> <a href="${escapeHtml(poi.hasMenu)}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">Speise- & Weinkarte ansehen ↗</a></div>` : ""}
+              </div>
             </div>
             ${(poi.lat && poi.lng) ? `
               <a href="https://www.google.com/maps/dir/?api=1&destination=${poi.lat},${poi.lng}" 
                  target="_blank" rel="noopener noreferrer" 
-                 class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-1">
+                 class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-1 mt-2">
                 <span>Google Maps Route</span> <span>↗</span>
               </a>
-            ` : `<button class="btn btn-sm btn-outline-secondary w-100" disabled>Keine Koordinaten</button>`}
+            ` : `<button class="btn btn-sm btn-outline-secondary w-100 mt-2" disabled>Keine Koordinaten</button>`}
           </div>
         </div>
       </div>
@@ -2468,7 +2427,7 @@ async function openQrModal(state) {
     </div>
     <h3 class="h5 fw-bold text-dark mt-2 mb-1">Auf Smartphone öffnen</h3>
     <p class="small text-secondary mb-3" style="line-height: 1.4;">
-      Scanne den QR-Code mit der Smartphone-Kamera, um diese Sehenswürdigkeiten-Ansicht direkt mobil aufzurufen.
+      Scanne den QR-Code mit der Smartphone-Kamera, um diesen Weinführer direkt mobil aufzurufen.
     </p>
     <div class="sw-qr-svg-card mb-3">
       ${svgHtml || '<div class="text-danger small">QR-Code konnte nicht geladen werden</div>'}
@@ -2591,7 +2550,7 @@ function renderErrorMessage(state, message) {
   state.root.innerHTML = `
     <div class="container py-5 text-center">
       <div class="alert alert-danger shadow-sm d-inline-block p-4" style="max-width: 600px;">
-        <h4 class="alert-heading fw-bold mb-2">Sehenswürdigkeiten konnten nicht geladen werden</h4>
+        <h4 class="alert-heading fw-bold mb-2">Weingüter konnten nicht geladen werden</h4>
         <p class="mb-3">${escapeHtml(message)}</p>
         <hr>
         <p class="small mb-0 text-muted">Prüfen Sie die Internetverbindung oder die Instanz-Konfiguration im Open Data App Store.</p>
