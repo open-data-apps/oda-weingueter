@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Sehenswürdigkeiten ODAS App - Full-Page Map & Modern UI Styles
+   Weingüter & Weingenuss ODAS App - Full-Page Map & Modern UI Styles
    ========================================================================== */
 
 /* 1. Fullscreen Canvas Lock (Wenn Startseite aktiv) */
@@ -149,17 +149,17 @@ body.sw-app-fullscreen #main-content {
   font-size: 0.88rem;
   font-weight: 700;
   border: none;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #722F37 0%, #881337 100%);
   color: #ffffff !important;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 16px rgba(114, 47, 55, 0.35);
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   white-space: nowrap;
 }
 
 .sw-btn-catalog:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-  box-shadow: 0 6px 22px rgba(37, 99, 235, 0.45);
+  background: linear-gradient(135deg, #881337 0%, #581c87 100%);
+  box-shadow: 0 6px 22px rgba(114, 47, 55, 0.45);
   transform: translateY(-1px);
   color: #ffffff !important;
 }
@@ -394,29 +394,29 @@ body.sw-app-fullscreen #main-content {
   color: #ffffff;
   font-weight: 600;
 }
-.sw-pill-btn.active.sw-pill-kids {
-  background: #ea580c;
-  border-color: #ea580c;
+.sw-pill-btn.active.sw-pill-alle {
+  background: #722F37;
+  border-color: #722F37;
 }
-.sw-pill-btn.active.sw-pill-indoor {
-  background: #2563eb;
-  border-color: #2563eb;
+.sw-pill-btn.active.sw-pill-weingut {
+  background: #881337;
+  border-color: #881337;
 }
-.sw-pill-btn.active.sw-pill-outdoor {
-  background: #16a34a;
-  border-color: #16a34a;
+.sw-pill-btn.active.sw-pill-vinothek {
+  background: #9333ea;
+  border-color: #9333ea;
 }
-.sw-pill-btn.active.sw-pill-free {
-  background: #059669;
-  border-color: #059669;
+.sw-pill-btn.active.sw-pill-besen {
+  background: #15803d;
+  border-color: #15803d;
 }
-.sw-pill-btn.active.sw-pill-outlet {
-  background: #c026d3;
-  border-color: #c026d3;
+.sw-pill-btn.active.sw-pill-weinstube {
+  background: #b45309;
+  border-color: #b45309;
 }
-.sw-pill-btn.active.sw-pill-culinary {
-  background: #b91c1c;
-  border-color: #b91c1c;
+.sw-pill-btn.active.sw-pill-probe {
+  background: #0284c7;
+  border-color: #0284c7;
 }
 .sw-pill-btn.active .sw-pill-count {
   background: rgba(255, 255, 255, 0.25);
@@ -695,12 +695,11 @@ body.sw-app-fullscreen #main-content {
   border-radius: 4px;
   line-height: 1.3;
 }
-.sw-tag-kids { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-.sw-tag-indoor { background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe; }
-.sw-tag-outdoor { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
-.sw-tag-free { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
-.sw-tag-outlet { background: #fdf4ff; color: #a21caf; border: 1px solid #f5d0fe; }
-.sw-tag-culinary { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+.sw-tag-weingut { background: #fdf2f4; color: #881337; border: 1px solid #fce7eb; }
+.sw-tag-vinothek { background: #faf5ff; color: #7e22ce; border: 1px solid #f3e8ff; }
+.sw-tag-besen { background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+.sw-tag-weinstube { background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; }
+.sw-tag-probe { background: #f0f9ff; color: #0369a1; border: 1px solid #e0f2fe; }
 
 .sw-card-btn-row {
   display: flex;
@@ -710,7 +709,7 @@ body.sw-app-fullscreen #main-content {
 .sw-btn-detail-link {
   font-size: 0.78rem !important;
   font-weight: 600 !important;
-  color: #2563eb !important;
+  color: #881337 !important;
   background: transparent !important;
   background-color: transparent !important;
   border: none !important;
@@ -727,9 +726,9 @@ body.sw-app-fullscreen #main-content {
 .sw-btn-detail-link:hover,
 .sw-btn-detail-link:focus,
 .sw-btn-detail-link:focus-visible {
-  background: #eff6ff !important;
-  background-color: #eff6ff !important;
-  color: #1d4ed8 !important;
+  background: #fdf2f4 !important;
+  background-color: #fdf2f4 !important;
+  color: #722F37 !important;
   text-decoration: none !important;
   outline: none !important;
   box-shadow: none !important;
