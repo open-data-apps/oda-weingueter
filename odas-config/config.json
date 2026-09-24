@@ -1,22 +1,23 @@
 {
-  "seitentitel": "Sehenswürdigkeiten Burladingen & Umgebung",
-  "titel": "Sehenswürdigkeiten",
+  "seitentitel": "Weingüter & Weingenuss Vaihingen an der Enz & Umgebung",
+  "titel": "Weingüter & Weingenuss",
   "icon": "assets/odas-app-icon.svg",
   "sprache": "de",
   "standardSprache": "de",
-  "bannerTitel": "Sehenswürdigkeiten Burladingen",
-  "bannerUntertitel": "Ausflugsziele & Highlights in unserer Region",
-  "ort": "Burladingen",
-  "latitude": "48.2917",
-  "longitude": "9.1122",
+  "bannerTitel": "Weingüter & Weingenuss",
+  "bannerUntertitel": "Winzerhöfe, Vinotheken & Besenwirtschaften in unserer Region",
+  "ort": "Vaihingen an der Enz",
+  "latitude": "48.9328",
+  "longitude": "8.9564",
+  "radiusKm": "25",
   "standardFilter": "alle",
   "proxyAktiv": "nein",
   "datenStand": "Stand: Abruf beim DZT Knowledge Graph",
-  "kpiKontext1": "Gesamtzahl der im ausgewählten Umkreis gefundenen Sehenswürdigkeiten.",
-  "kpiKontext2": "Ausflugsziele, die besonders für Kinder und Familien geeignet sind.",
-  "kpiKontext3": "Wettergeschützte Ziele – ideal für Regentage oder Hitzeschutz.",
-  "kpiKontext4": "Sehenswürdigkeiten und Ausflugsziele ohne Eintrittsgebühren.",
-  "datenquelleHinweis": "<p>Die Daten stammen aus dem offenen <strong>Knowledge Graph der Deutschen Zentrale für Tourismus (DZT)</strong>. Sie werden unter offenen Lizenzen (z. B. CC BY, CC0) bereitgestellt und für diese Region aufbereitet.</p>",
+  "kpiKontext1": "Gesamtzahl der im ausgewählten Umkreis gefundenen Weinorte.",
+  "kpiKontext2": "Weingüter und Winzerhöfe mit eigenem Weinbau und Flaschenverkauf.",
+  "kpiKontext3": "Traditionelle, meist saisonal geöffnete Besen- und Straußwirtschaften.",
+  "kpiKontext4": "Moderne Vinotheken und gemütliche Weinstuben zum Einkehren und Verkosten.",
+  "datenquelleHinweis": "<p>Die Daten stammen aus dem offenen <strong>Knowledge Graph der Deutschen Zentrale für Tourismus (DZT)</strong> und basieren auf der standardisierten Schema.org-Klasse <code>schema:Winery</code>. Sie werden unter offenen Lizenzen (z. B. CC BY, CC0) bereitgestellt.</p>",
   "weiterfuehrendeLinks": "<ul><li><a href=\"https://open-data-germany.org/\" target=\"_blank\" rel=\"noopener\">Open Data Germany (DZT)</a></li><li><a href=\"https://open-data-app-store.de/\" target=\"_blank\" rel=\"noopener\">Open Data App Store</a></li></ul>",
   "kontakt": [
     "_multiline_",
@@ -24,14 +25,17 @@
     "<p>Telefon: <a href='tel:+49711310093100'>0711 31009-3100</a><br>E-Mail: <a href='mailto:info@ondics.de'>info@ondics.de</a></p>"
   ],
   "beschreibung": [
-    "<p>Die App <strong>Sehenswürdigkeiten</strong> macht Ausflugsziele, Kulturschätze und Naturattraktionen aus dem Knowledge Graph der Deutschen Zentrale für Tourismus (DZT) auf einer interaktiven Karte und in einer filterbaren Übersicht für Bürger:innen und Gäste erlebbar.</p>",
+    "<p>Herzlich willkommen in unserer Weinregion! Mit der App <strong>Weingüter &amp; Weingenuss</strong> laden wir Bürgerinnen, Bürger und Gäste ein, die Vielfalt der regionalen Weinkultur, Winzerhöfe, Vinotheken und traditionellen Ausschankorte zu entdecken.</p>",
+    "<p>Unsere Anwendung bereitet die offenen Daten des Knowledge Graph der Deutschen Zentrale für Tourismus (DZT) zielgerichtet für unsere Region auf – übersichtlich auf einer interaktiven Karte, mit Schnellfiltern und in einer filterbaren Übersicht.</p>",
+    "<h3>Für wen ist diese App?</h3>",
+    "<p>Die App richtet sich an alle Weinfreundinnen und Weinfreunde, Genießer:innen, Ausflugsgäste sowie Tourist:innen, die regionale Betriebe ohne lange Recherche direkt finden möchten. Spezielle Vorkenntnisse sind nicht erforderlich.</p>",
     "<h2>Methodik</h2>",
-    "<p>Die App fragt für die konfigurierte Gemeinde und den festgelegten Umkreis touristische Attraktionen (schema:TouristAttraction) ab. Besondere Filter heben Angebote für Kinder &amp; Familien hervor (Spielplätze, Erlebnispfade, Schatzsuchen) sowie wettergeschützte Indoor-Ziele (Museen, Burgen, Höhlen) für Regentage oder Hitzeschutz.</p>",
+    "<p>Die App fragt für die ausgewählte Gemeinde und den gewählten Umkreis gezielt Betriebe der Schema.org-Klasse <code>schema:Winery</code> aus dem DZT Knowledge Graph ab. Eine clientseitige Klassifizierung ordnet die Fundstellen nach Typen wie Weingut, Vinothek, Besen- oder Straußwirtschaft, Weinstube und Weinproben.</p>",
     "<h2>Datenquelle</h2>",
     "<ul>",
     "<li><strong>Open Data Portal:</strong> <a href=\"https://open-data-app-store.de/\" target=\"_blank\" rel=\"noopener\">Open Data App Store</a></li>",
-    "<li><strong>Datensatz:</strong> <a href=\"https://open-data-germany.org/\" target=\"_blank\" rel=\"noopener\">DZT Knowledge Graph (POIs)</a></li>",
-    "<li><strong>Ressource:</strong> <a href=\"https://proxy.opendatagermany.io/api/ts/v2/kg/things\" target=\"_blank\" rel=\"noopener\">DZT Query API v2</a></li>",
+    "<li><strong>Datensatz:</strong> <a href=\"https://open-data-germany.org/\" target=\"_blank\" rel=\"noopener\">DZT Knowledge Graph (schema:Winery)</a></li>",
+    "<li><strong>Ressource:</strong> <a href=\"https://proxy.opendatagermany.io/api/ts/v1/kg/sparql\" target=\"_blank\" rel=\"noopener\">DZT SPARQL-Endpunkt</a></li>",
     "</ul>",
     "<h2>Open Data App</h2>",
     "<p>Diese Anwendung basiert auf offenen Schnittstellen und ist Teil des Open Data App Stores.</p>",
@@ -50,8 +54,8 @@
     "<p>Telefon: 0711 31009-3100<br>E-Mail: <a href='mailto:info@ondics.de'>info@ondics.de</a></p>"
   ],
   "datenschutz": [
-    "<p>Die Sehenswürdigkeiten-App verarbeitet keine personenbezogenen Daten von Besucher:innen. Kartenkacheln werden datenschutzfreundlich von OpenStreetMap geladen.</p>",
-    "<p>Datenabrufe der Sehenswürdigkeiten erfolgen über den gesicherten Store-Relay ohne Übertragung von Browserdaten an Dritte.</p>"
+    "<p>Die Weingenuss-App verarbeitet keine personenbezogenen Daten von Besucher:innen. Kartenkacheln werden datenschutzfreundlich von OpenStreetMap geladen.</p>",
+    "<p>Datenabrufe der Weingüter erfolgen über den gesicherten Store-Relay ohne Übertragung von Browserdaten an Dritte.</p>"
   ],
   "fusszeile": "© 2026 | App und Daten: DZT Knowledge Graph & ODAS | Entwicklung: Ondics GmbH",
   "brandingCSS": "",
@@ -63,6 +67,5 @@
       "label": "SPARQL-Endpunkt (DZT)",
       "url": "https://proxy.opendatagermany.io/api/ts/v1/kg/sparql"
     }
-  ],
-  "radiusKm": "25"
+  ]
 }

@@ -4,22 +4,27 @@
     {
       "name": "id",
       "type": "string",
-      "description": "Eindeutige URI oder Kennung des POIs im DZT Knowledge Graph"
+      "description": "Eindeutige URI oder Kennung des Weinorts im DZT Knowledge Graph"
     },
     {
       "name": "name",
       "type": "string",
-      "description": "Bezeichnung der Sehenswürdigkeit oder Attraktion"
+      "description": "Name des Weinguts, der Vinothek oder Weinstube"
     },
     {
       "name": "type",
       "type": "string",
-      "description": "Schema.org / ODTA Typ (z. B. TouristAttraction, Museum, Playground)"
+      "description": "Schema.org Typ (https://schema.org/Winery)"
+    },
+    {
+      "name": "categories",
+      "type": "string",
+      "description": "Klassifizierte Erlebnis-Kategorien (weingut, vinothek, besen, weinstube, probe)"
     },
     {
       "name": "description",
       "type": "string",
-      "description": "Ausführliche Beschreibung des Ausflugsziels"
+      "description": "Ausführliche Beschreibung des Betriebs und Weinsortiments"
     },
     {
       "name": "latitude",
@@ -52,29 +57,21 @@
       "description": "Berechnete Luftlinien-Entfernung zum Instanz-Zentrum in Kilometern"
     },
     {
-      "name": "isKidsFriendly",
-      "type": "boolean",
-      "description": "Kennzeichen: Für Kinder und Familien besonders geeignet"
-    },
-    {
-      "name": "weatherType",
+      "name": "telephone",
       "type": "string",
-      "description": "Klassifikation: indoor (wetterfest), outdoor (Freiluft) oder hybrid"
+      "description": "Telefonnummer des Betriebs"
     },
     {
-      "name": "isFree",
-      "type": "boolean",
-      "description": "Kennzeichen: Kostenloser Eintritt / frei zugänglich"
+      "name": "url",
+      "type": "string",
+      "format": "uri",
+      "description": "Offizielle Website des Betriebs"
     },
     {
-      "name": "isOutlet",
-      "type": "boolean",
-      "description": "Kennzeichen: Outlet Store, Werksverkauf oder Shopping Center"
-    },
-    {
-      "name": "isCulinary",
-      "type": "boolean",
-      "description": "Kennzeichen: Regionale Kulinarik, Brauerei oder Weingut"
+      "name": "hasMenu",
+      "type": "string",
+      "format": "uri",
+      "description": "Link zur Weinkarte / Speisekarte"
     },
     {
       "name": "imageUrl",
