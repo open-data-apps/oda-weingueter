@@ -1,4 +1,4 @@
-Die App **Sehenswürdigkeiten** macht touristische Highlights, Naturattraktionen, historische Bauwerke, familienfreundliche Ausflugsziele, Werksverkäufe und regionale Genussorte aus dem Knowledge Graph der Deutschen Zentrale für Tourismus (DZT) auf einer randlosen interaktiven Karte und in einer filterbaren Übersicht entdeckbar.
+Die App **Weingüter & Weingenuss** macht Winzerhöfe, Weingüter, Vinotheken, Besen- und Straußwirtschaften sowie Weinstuben aus dem Knowledge Graph der Deutschen Zentrale für Tourismus (DZT) auf einer randlosen interaktiven Karte und in einer filterbaren Übersicht entdeckbar.
 
 Die App ist für die Verwendung im [Open Data App Store](https://open-data-app-store.de/) gemacht und entspricht der [Open Data App Spezifikation](https://open-data-apps.github.io/open-data-app-docs/open-data-app-spezifikation/).
 
@@ -16,22 +16,24 @@ Die App ist eine Single Page Application (Webapp) mit:
 
 Die Konfiguration wird vom ODAS geladen. Die App bietet folgende Kernfunktionen:
 
-- **Randlose Vollbild-Kartenansicht (100vw × 100vh)**: Interaktive Leaflet-Karte mit OpenStreetMap-Kacheln, performantem Marker-Clustering (`Leaflet.markercluster`) und zentrierten, gestochen scharfen Vektor-SVG-Pins.
+- **Randlose Vollbild-Kartenansicht (100vw × 100vh)**: Interaktive Leaflet-Karte mit OpenStreetMap-Kacheln, performantem Marker-Clustering (`Leaflet.markercluster`) und zentrierten, gestochen scharfen Vektor-SVG-Pins in Burgunder- und Weinfarben.
 - **Karten-Reset (Home-Button)**: Eigener Home-Button direkt über den Zoom-Tasten zum sofortigen Zurücksetzen auf die Ausgangsposition und den Startzoom.
 - **Einklappbares Cockpit & Rand-Lasche (Desktop)**: Schlankes linkes Cockpit mit Live-Suche, Filter-Pills mit dynamischen Trefferzahlen und Schnellzugriff auf Details; einklappbar für ungestörte Kartensicht.
-- **Thematische Klassifikation & Filter**:
-  - Zielgruppenfilter: Kinder & Familie (Spielplätze, Freizeitparks, Erlebnispfade)
-  - Alltagsorientierter Wetterfilter: *Wetterfest (Indoor)* vs. *Freiluft (Outdoor)*
-  - Kostenfreier Eintritt (öffentlich zugänglich / ohne Ticket)
-  - Regionale Werksverkäufe & Outlets (`schema:OutletStore`, Textiltradition)
-  - Kulinarik & Genussorte (Brauereien und Weingüter, `schema:Brewery`, `schema:Winery`)
-- **Vollbild Foto-Katalog**: Umschaltbare Bildergalerie aller Sehenswürdigkeiten mit großformatigen Bildern, Entfernungsangaben und Direktabsprung auf die Karte.
+- **4-KPI-Cockpit**: Schneller Überblick über Gesamtzahl der Weinorte, aktive Weingüter, Besenwirtschaften sowie Vinotheken & Weinstuben.
+- **Thematische Weingenuss-Filter**:
+  - 🍷 **Alle**: Vollständige Übersicht aller Weinorte im Umkreis
+  - 🍇 **Weingüter**: Winzerhöfe, Weingüter und genossenschaftliche Keltern
+  - 🍾 **Vinotheken**: Stilvolle Weinverkäufe und Probierstuben
+  - 🌿 **Besen**: Saisonale Besen-, Strauß- und Heckenwirtschaften
+  - 🏮 **Weinstuben**: Traditionelle Weinstuben und Weinausschank
+  - 🥂 **Weinproben**: Angebote mit Führungen und Verkostungen
+- **Vollbild Foto-Katalog**: Umschaltbare Bildergalerie aller Weinorte mit großformatigen Bildern, Entfernungsangaben und Direktabsprung auf die Karte.
 - **Detailansicht (Modal) & Vollbild-Lightbox**:
-  - Strukturierte Details mit Öffnungszeiten, Barrierefreiheit, Anfahrtslinks und Lizenzen.
+  - Strukturierte Details mit Adresse, Kontaktdaten (Telefon, Website, Speise-/Weinkarte) und Lizenzen.
   - Klickbare Vollbild-Bildergalerie mit Touch-Wischgesten (Swipe), sanfter Richtungsanimation und Tastaturnavigation für Mehrfachbilder.
 - **Mobiles Bedienkonzept (Smartphones)**:
-  - Schwebender Ansichtswechsler (`🏛️ Sehenswürdigkeiten (300)` / `🗺️ Karte`) zum einfachen Umschalten zwischen Vollbild-Karte und Trefferliste.
-  - Kompaktes Themen-Dropdown neben der Sortierung (kein horizontales Scrollen/Quetschen).
+  - Schwebender Ansichtswechsler (`🍷 Weinorte (12)` / `🗺️ Karte`) zum einfachen Umschalten zwischen Vollbild-Karte und Trefferliste.
+  - Kompaktes Erlebnis-Dropdown neben der Sortierung (kein horizontales Scrollen/Quetschen).
   - Bündiger Seitenkopf ohne Element-Überlappung.
 - **Dynamischer QR-Code**: Schnelle Übertragung der aktuellen App-Ansicht auf Smartphones über einen dynamisch erzeugten QR-Code.
 - **Performance & Session-Cache**: Sitzungsbasierte Zwischenspeicherung im Browser (`sessionStorage`) für blitzschnelle Ladezeiten und nahtlose Unterseiten-Wechsel.
@@ -42,7 +44,7 @@ Die Konfiguration wird vom ODAS geladen. Die App bietet folgende Kernfunktionen:
 
 ## Für wen ist diese App?
 
-Diese App richtet sich an Bürgerinnen, Bürger, Gäste und Familien, die Ausflugsziele und Sehenswürdigkeiten in ihrer Region entdecken möchten – sei es für einen Familiennachmittag im Freien oder als Schlechtwetter-Alternative bei Regen. Zudem dient sie Kommunen und Tourismusverbänden zur einfachen, ansprechenden Präsentation ihrer offenen DZT-Kulturdaten.
+Diese App richtet sich an Weinliebhaber, Bürgerinnen, Bürger, Urlaubsgäste und Ausflügler, die Weingüter, Vinotheken und saisonale Besenwirtschaften in ihrer Region erkunden möchten – für Weinproben, Weineinkauf ab Hof oder gesellige Einkehr. Zudem dient sie Kommunen und Weinregionen zur einfachen, ansprechenden Präsentation ihrer offenen DZT-Tourismusdaten.
 
 Es sind keine besonderen Datenkenntnisse nötig – die Bedienung erfolgt intuitiv über Karte, Liste, Katalog und Filter.
 
@@ -52,10 +54,10 @@ Es sind keine besonderen Datenkenntnisse nötig – die Bedienung erfolgt intuit
 
 Die App lädt schema.org- und ODTA-konforme Daten aus dem **DZT Knowledge Graph**:
 
-- **Typ:** `schema:TouristAttraction`, `schema:Place`, `odta:PointOfInterest`, `schema:Museum`, `schema:Playground`, `schema:OutletStore`, `schema:Brewery`, `schema:Winery` u. a.
-- **Attribute:** `name`, `description`, `geo` (GeoCoordinates), `address` (PostalAddress), `image` (ImageObject-Array mit Lizenzen), `isAccessibleForFree`, `openingHoursSpecification`, `amenityFeature`.
+- **Typ:** `schema:Winery`
+- **Attribute:** `name`, `description`, `geo` (GeoCoordinates), `address` (PostalAddress), `telephone`, `url`, `hasMenu`, `image` (ImageObject-Array mit Lizenzen).
 - **Datenzugriff:** Im ODAS-Livebetrieb ausschließlich über den internen Store-Relay (`/dzt?path=...`). Der DZT-API-Key verbleibt sicher im Store.
-- **Lokale Entwicklung:** Automatische Verwendung einer realistischen Fixture (`assets/demo-pois.json`).
+- **Lokale Entwicklung:** Automatische Verwendung einer realistischen Fixture (`assets/demo-weingueter.json`).
 
 ---
 
@@ -63,7 +65,7 @@ Die App lädt schema.org- und ODTA-konforme Daten aus dem **DZT Knowledge Graph*
 
 | Datensatz | Quelle | Lizenz |
 | --- | --- | --- |
-| DZT Knowledge Graph (POIs, Attraktionen, Outlets, Genuss) | Deutsche Zentrale für Tourismus (DZT) | CC BY / CC BY-SA / CC0 |
+| DZT Knowledge Graph (schema:Winery) | Deutsche Zentrale für Tourismus (DZT) | CC BY / CC BY-SA / CC0 |
 | OpenStreetMap-Kacheln | OpenStreetMap contributors | ODbL |
 
 ---
@@ -129,7 +131,7 @@ Extern abgerufen werden ausschließlich:
 - Die OpenStreetMap-Kartenkacheln: `tile.openstreetmap.org` (OpenStreetMap contributors, ODbL).
 - Bei unvollständigen Koordinaten und unbekanntem Ort im Offline-Verzeichnis: Asynchrones Geocoding via OSM Nominatim (`nominatim.openstreetmap.org`).
 
-Externe Routenplaner-Links (z. B. Google Maps, OpenStreetMap) werden erst bei ausdrücklichem Benutzerklick in einem neuen Tab geöffnet.
+Externe Routenplaner-Links (z. B. Google Maps) werden erst bei ausdrücklichem Benutzerklick in einem neuen Tab geöffnet.
 
 ---
 
@@ -137,16 +139,15 @@ Externe Routenplaner-Links (z. B. Google Maps, OpenStreetMap) werden erst bei au
 
 | Datei | Beschreibung |
 | --- | --- |
-| `app/app.js` | App-Logik: DZT SPARQL-Abruf, 3-Stufen-Geocoding, Klassifikations-Engine, Leaflet-Karte, Clustering, Cockpit, Filter, Katalog, Lightbox, QR-Code |
-| `app/app.css` | Vollbild-Layout, Glassmorphism-Cockpit, Vektor-Pins, Lightbox-Animationen, Mobile Queries |
+| `app/app.js` | App-Logik: DZT SPARQL-Abruf (`schema:Winery`), 3-Stufen-Geocoding, Klassifikations-Engine, Leaflet-Karte, Clustering, Cockpit, Filter, Katalog, Lightbox, QR-Code |
+| `app/app.css` | Vollbild-Layout, Weinthema, Glassmorphism-Cockpit, Vektor-Pins, Lightbox-Animationen, Mobile Queries |
 | `app-package.json` | ODAS-Paketmetadaten und Instanzkonfiguration mit v1-kompatiblen Typen und Categories |
 | `assets/gemeinden.json` | Integriertes Offline-Gemeindeverzeichnis für sofortiges Geocoding ohne externen Request |
-| `assets/schema.json` | Frictionless Table Schema des normalisierten Datenmodells |
-| `assets/odas-app-icon.svg` | Normgerechtes ODAS SVG-App-Icon (512×512, Gradient, Shadow) |
+| `assets/demo-weingueter.json` | Lokales Demo-Fixture mit 12 authentischen Weingütern für Offline-Entwicklung |
+| `assets/schema.json` | Frictionless Table Schema des normalisierten Weingüter-Datenmodells |
+| `assets/odas-app-icon.svg` | Normgerechtes ODAS SVG-App-Icon (512×512, Weinrot-Gradient, Trauben, Glas) |
 | `odas-config/config.json` | Lokale Test-Konfiguration |
-| `tests/test_geocoding.js` | Unit-Tests für 3-Stufen-Geocoding (Config, Offline, Nominatim, Fallback) |
-| `tests/test_classification.js` | Unit-Tests für Klassifikation, Tags und Normalisierung |
-| `tests/test_svg_pins.js` | Unit-Tests für Vektor-SVG-Pin-Generierung |
+| `tests/` | Unit- und Integrations-Tests für Geocoding, Klassifikation, Metadaten und Demo-Daten |
 
 ---
 
