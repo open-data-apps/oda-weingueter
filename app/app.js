@@ -13,7 +13,7 @@
  * Datenzugriff:
  *  - Im ODAS-Livebetrieb ausschließlich über den internen Store-Relay:
  *    GET <appPath>/dzt?path=ts/v1/kg/sparql?query=...
- *  - Bei lokaler Entwicklung automatischer Fallback auf config.demoPois.
+ *  - Lokale synthetische Demo-Fixture wird ausschließlich auf localhost geladen.
  */
 
 let swInstanzZaehler = 0;
@@ -23,6 +23,9 @@ const swInstances = new Map();
  * Lifecycle-Hook der ODAS-Base: Wird beim Verlassen der Seite aufgerufen.
  */
 function onPageLeave(page) {
+  if (typeof window.__swActiveLightboxCleanup === "function") {
+    window.__swActiveLightboxCleanup();
+  }
   document.body.classList.remove("sw-app-fullscreen");
 
   // Alle aktiven Bootstrap Modals sauber schliessen
@@ -127,117 +130,116 @@ function renderPageOverride(page) {
 }
 
 // ===========================================================================
-// 3-Stufen Geocoding Engine (Option 1C)
+// 3-Stufen Geocoding Engine
 // ===========================================================================
 let GEMEINDEN_LOOKUP = null;
 
+function getOdasAssetPath(fileName) {
+  const pathname = String(window.location.pathname || "/");
+  const appDirectory = pathname.replace(/\/index\.html$/i, "").replace(/\/+$/, "");
+  const appIsSiblingOfAssets = appDirectory.split("/").pop() === "app";
+  return `${appIsSiblingOfAssets ? "../" : ""}assets/${fileName}`;
+}
+
+function validCoordinates(lat, lng) {
+  return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+}
+
 async function loadGemeindenLookup(fetchFn) {
   if (GEMEINDEN_LOOKUP) return GEMEINDEN_LOOKUP;
-  // Node.js Test-Umgebung: Direktes Laden via fs falls vorhanden
-  if (typeof process !== "undefined" && process.versions && process.versions.node && typeof require === "function") {
-    try {
-      const fs = require("fs");
-      const path = require("path");
-      const dir = typeof __dirname !== "undefined" ? __dirname : process.cwd();
-      const candidates = [
-        path.join(dir, "assets/gemeinden.json"),
-        path.join(dir, "../assets/gemeinden.json"),
-        path.join(process.cwd(), "assets/gemeinden.json"),
-        path.join(process.cwd(), "oda-sehenswuerdigkeiten/assets/gemeinden.json")
-      ];
-      for (const fp of candidates) {
-        if (fs.existsSync(fp)) {
-          GEMEINDEN_LOOKUP = JSON.parse(fs.readFileSync(fp, "utf-8"));
-          return GEMEINDEN_LOOKUP;
-        }
-      }
-    } catch (_) {}
-  }
-
-  // Browser-Umgebung: Laden via fetch
   const effectiveFetch = fetchFn || (typeof fetch !== "undefined" ? fetch : null);
-  if (effectiveFetch) {
-    const candidatePaths = ["assets/gemeinden.json", "../assets/gemeinden.json"];
-    for (const p of candidatePaths) {
-      try {
-        const resp = await effectiveFetch(p);
-        if (resp && resp.ok) {
-          GEMEINDEN_LOOKUP = await resp.json();
-          return GEMEINDEN_LOOKUP;
-        }
-      } catch (_) {}
-    }
+  if (!effectiveFetch) return {};
+  try {
+    const resp = await effectiveFetch(getOdasAssetPath("gemeinden.json"));
+    if (!resp || !resp.ok) return {};
+    const data = await resp.json();
+    if (!data || typeof data !== "object" || Array.isArray(data)) return {};
+    GEMEINDEN_LOOKUP = data;
+    return GEMEINDEN_LOOKUP;
+  } catch (_) {
+    return {};
   }
-
-  // Fallback auf Basiseintrag Burladingen
-  return { "burladingen": [48.2917, 9.1122] };
 }
 
 async function resolveCoordinates(ort, configdata = {}, fetchFn = null) {
-  // Stufe 1: Explizite Koordinaten in configdata
-  const cfgLat = configdata.latitude !== undefined && configdata.latitude !== "" ? parseFloat(configdata.latitude) : NaN;
-  const cfgLng = configdata.longitude !== undefined && configdata.longitude !== "" ? parseFloat(configdata.longitude) : NaN;
-  if (!isNaN(cfgLat) && !isNaN(cfgLng) && cfgLat !== 0 && cfgLng !== 0) {
+  const rawLat = configdata.latitude == null ? "" : String(configdata.latitude).trim();
+  const rawLng = configdata.longitude == null ? "" : String(configdata.longitude).trim();
+  const hasLat = rawLat !== "";
+  const hasLng = rawLng !== "";
+  if (hasLat !== hasLng) {
+    throw new Error("Latitude und Longitude müssen gemeinsam konfiguriert werden.");
+  }
+  if (hasLat && hasLng) {
+    const cfgLat = Number(rawLat);
+    const cfgLng = Number(rawLng);
+    if (!validCoordinates(cfgLat, cfgLng)) {
+      throw new Error("Die konfigurierten Koordinaten sind ungültig oder außerhalb des erlaubten Bereichs.");
+    }
     return { lat: cfgLat, lng: cfgLng, source: "config" };
   }
 
-  const cleanOrt = String(ort || "").trim().toLowerCase();
+  const cleanOrt = String(ort || "").trim().toLocaleLowerCase("de-DE");
   if (!cleanOrt) {
-    return { lat: 48.2917, lng: 9.1122, source: "fallback" };
+    throw new Error("Bitte konfigurieren Sie einen Ort oder ein vollständiges Koordinatenpaar.");
   }
 
-  // Cache-Prüfung im sessionStorage
-  const cacheKey = `sw_geo_v1_${cleanOrt}`;
+  const cacheKey = `sw_geo_v2_${cleanOrt}`;
   try {
     if (typeof sessionStorage !== "undefined") {
       const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (parsed && typeof parsed.lat === "number" && typeof parsed.lng === "number") {
+        if (parsed && validCoordinates(parsed.lat, parsed.lng)) {
           return { lat: parsed.lat, lng: parsed.lng, source: parsed.source || "offline" };
         }
       }
     }
   } catch (_) {}
 
-  // Stufe 2: Offline-Gemeindeverzeichnis
   const lookup = await loadGemeindenLookup(fetchFn);
-  if (lookup && lookup[cleanOrt]) {
-    const coords = lookup[cleanOrt];
-    const result = { lat: coords[0], lng: coords[1], source: "offline" };
+  const coords = lookup && lookup[cleanOrt];
+  if (Array.isArray(coords) && validCoordinates(Number(coords[0]), Number(coords[1]))) {
+    const result = { lat: Number(coords[0]), lng: Number(coords[1]), source: "offline" };
     try {
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem(cacheKey, JSON.stringify(result));
     } catch (_) {}
     return result;
   }
 
-  // Stufe 3: Automatischer Online-Geocoding-Fallback via OpenStreetMap Nominatim
   const effectiveFetch = fetchFn || (typeof fetch !== "undefined" ? fetch : null);
   if (effectiveFetch) {
     try {
       const url = `https://nominatim.openstreetmap.org/search?format=json&city=${encodeURIComponent(cleanOrt)}&country=Germany&limit=1`;
-      const resp = await effectiveFetch(url, {
-        headers: { "Accept": "application/json" }
-      });
+      const resp = await effectiveFetch(url, { headers: { "Accept": "application/json" } });
       if (resp && resp.ok) {
         const data = await resp.json();
-        if (Array.isArray(data) && data.length > 0 && data[0].lat && data[0].lon) {
-          const lat = parseFloat(data[0].lat);
-          const lng = parseFloat(data[0].lon);
-          const result = { lat, lng, source: "nominatim" };
-          try {
-            if (typeof sessionStorage !== "undefined") sessionStorage.setItem(cacheKey, JSON.stringify(result));
-          } catch (_) {}
-          return result;
+        if (Array.isArray(data) && data.length > 0) {
+          const lat = Number(data[0] && data[0].lat);
+          const lng = Number(data[0] && data[0].lon);
+          if (validCoordinates(lat, lng)) {
+            const result = { lat, lng, source: "nominatim" };
+            try {
+              if (typeof sessionStorage !== "undefined") sessionStorage.setItem(cacheKey, JSON.stringify(result));
+            } catch (_) {}
+            return result;
+          }
         }
       }
     } catch (err) {
-      console.warn("Geocoding-Abruf fehlgeschlagen, nutze Fallback:", err);
+      console.warn("Geocoding-Abruf fehlgeschlagen:", err);
     }
   }
 
-  // Stufe 4: Sicherer Fallback (Standard: Burladingen Zentrum)
-  return { lat: 48.2917, lng: 9.1122, source: "fallback" };
+  throw new Error(`Der Standort „${String(ort).trim()}“ konnte nicht aufgelöst werden. Bitte Ort oder Koordinaten in der Instanz-Konfiguration prüfen.`);
+}
+
+function normalizeRadiusKm(value) {
+  const radius = Number(value);
+  return [5, 10, 25, 50, 100].includes(radius) ? radius : 25;
+}
+
+function getConfiguredRadiusKm(configdata = {}) {
+  return normalizeRadiusKm(configdata.radiusKm);
 }
 
 if (typeof window !== "undefined") {
@@ -245,6 +247,53 @@ if (typeof window !== "undefined") {
 }
 if (typeof globalThis !== "undefined") {
   globalThis.resolveCoordinates = resolveCoordinates;
+}
+
+// F-149/F-150: Delegierter Klick-Handler statt Inline-JavaScript mit Datenwerten.
+// POI-IDs und Rohdaten-JSON liegen HTML-escapad in data-Attributen; der Browser
+// dekodiert sie beim dataset-Zugriff zurück in den Originalwert, ohne dass ein
+// JavaScript-Kontext mit untrusted Daten entsteht.
+function registerSwCopyHandler() {
+  if (window.__swCopyHandlerInstalled) return;
+  window.__swCopyHandlerInstalled = true;
+  document.addEventListener("click", (event) => {
+    const el = event.target instanceof Element ? event.target.closest("[data-sw-copy]") : null;
+    if (!el) return;
+    const text = el.dataset.swCopy || "";
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => { el.textContent = "Kopiert!"; }).catch(() => {});
+    }
+  });
+}
+
+function registerSwActionHandler(root, state) {
+  registerSwCopyHandler();
+  if (typeof root.__swActionCleanup === "function") root.__swActionCleanup();
+  const handleSwActions = (event) => {
+    const el = event.target instanceof Element ? event.target.closest("[data-sw-action]") : null;
+    if (!el) return;
+    const poiId = el.dataset.swPoiId || "";
+    if (el.dataset.swAction === "open-detail") openDetailModal(state, poiId);
+    else if (el.dataset.swAction === "focus-poi") focusPoiOnMap(state, poiId);
+  };
+  const handleSwActionKeys = (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const card = event.target instanceof Element
+      ? event.target.closest(".sw-catalog-card[data-sw-action], .sw-clean-card[data-sw-action]")
+      : null;
+    if (!card || event.target !== card) return;
+    event.preventDefault();
+    const poiId = card.dataset.swPoiId || "";
+    if (card.dataset.swAction === "open-detail") openDetailModal(state, poiId);
+    else if (card.dataset.swAction === "focus-poi") focusPoiOnMap(state, poiId);
+  };
+  root.addEventListener("click", handleSwActions);
+  root.addEventListener("keydown", handleSwActionKeys);
+  root.__swActionCleanup = () => {
+    root.removeEventListener("click", handleSwActions);
+    root.removeEventListener("keydown", handleSwActionKeys);
+    root.__swActionCleanup = null;
+  };
 }
 
 /**
@@ -272,6 +321,15 @@ async function app(configdata = {}, enclosingHtmlDivElement) {
       }, 50);
     }
     ensureQrNavMenuItem(window.__swCachedState);
+    registerSwActionHandler(root, window.__swCachedState);
+    return "";
+  }
+
+  let coords;
+  try {
+    coords = await resolveCoordinates(configdata.ort, configdata);
+  } catch (error) {
+    renderCoordinateError(root, error);
     return "";
   }
 
@@ -297,9 +355,6 @@ async function app(configdata = {}, enclosingHtmlDivElement) {
     }
   }
 
-  // 3-Stufen-Geocoding: Koordinaten auflösen
-  const coords = await resolveCoordinates(configdata.ort || "Burladingen", configdata);
-
   // Instanz-Zustand
   const state = {
     uid,
@@ -307,11 +362,12 @@ async function app(configdata = {}, enclosingHtmlDivElement) {
     config: configdata,
     disposed: false,
     appendedModals: [],
-    ort: String(configdata.ort || "Burladingen").trim(),
+    ort: String(configdata.ort || "").trim() || "Ausgewählter Standort",
     lat: coords.lat,
     lng: coords.lng,
     coordSource: coords.source,
-    umkreis: parseInt(configdata.umkreis || configdata.radiusKm, 10) || 25,
+    umkreis: getConfiguredRadiusKm(configdata),
+    standardSprache: String(configdata.standardSprache || "de").trim().toLowerCase() === "en" ? "en" : "de",
     standardFilter: String(configdata.standardFilter || "alle").trim(),
     allPois: [],
     filteredPois: [],
@@ -338,9 +394,8 @@ async function app(configdata = {}, enclosingHtmlDivElement) {
     state.filters.wineType = stdF;
   }
 
-  // Globalen Detail-Opener registrieren
-  window[`swOpenDetail_${uid}`] = (poiId) => openDetailModal(state, poiId);
-  window[`swFocusPoi_${uid}`] = (poiId) => focusPoiOnMap(state, poiId);
+  // Delegierte Detail-/Fokus-Aktionen registrieren (keine Inline-JS-Senken)
+  registerSwActionHandler(root, state);
 
   // Initiales Layout rendern (Ladezustand)
   renderInitialLayout(state);
@@ -352,9 +407,11 @@ async function app(configdata = {}, enclosingHtmlDivElement) {
     // Daten abrufen (DZT Relay oder Fallback-Fixture)
     const rawPois = await loadDztData(state);
     if (state.disposed) return;
+    state.sourceLimitReached = !state.demoMode && rawPois.length >= 300;
+    updateSourceNotice(state);
 
     // Normalisieren & nach Distanz sortieren
-    state.allPois = rawPois.map(p => normalizeDztPoi(p, state.lat, state.lng)).filter(Boolean);
+    state.allPois = rawPois.map(p => normalizeDztPoi(p, state.lat, state.lng, state.standardSprache)).filter(Boolean);
     state.allPois.sort((a, b) => (a.distanceKm ?? 999) - (b.distanceKm ?? 999));
 
     // Karte initialisieren
@@ -496,48 +553,52 @@ function ensureQrCodeLoaded() {
 // DZT-Relay & Datenabruf (SPARQL ts/v1/kg/sparql)
 // ===========================================================================
 
-function dztApiPath(apiurl) {
-  try {
-    return new URL(String(apiurl || "")).pathname.replace(/^\/+api\/?/, "");
-  } catch (_error) {
-    return "";
-  }
+const DZT_SPARQL_ENDPOINT = "https://proxy.opendatagermany.io/api/ts/v1/kg/sparql";
+
+function getOdasApiUrl(configdata, name) {
+  const liste = Array.isArray(configdata && configdata.apiurls) ? configdata.apiurls : [];
+  const treffer = liste.find((eintrag) => eintrag && eintrag.name === name);
+  return String((treffer && treffer.url) || "").trim();
 }
 
-function buildDztSparqlQuery(lat, lng, radiusKm) {
-  let geoFilter = "";
-  const numLat = parseFloat(lat);
-  const numLng = parseFloat(lng);
-  const radius = parseFloat(radiusKm) || 25;
+function normalizePreferredLanguage(value) {
+  return String(value || "de").trim().toLowerCase() === "en" ? "en" : "de";
+}
 
-  if (!isNaN(numLat) && !isNaN(numLng) && numLat !== 0 && numLng !== 0) {
-    const geoShapeJson = JSON.stringify({
-      query: {
-        geo_shape: {
-          geometry: {
-            shape: {
-              type: "circle",
-              radius: `${radius}km`,
-              coordinates: [numLng, numLat]
-            },
-            relation: "intersects"
-          }
+function buildDztSparqlQuery(lat, lng, radiusKm, preferredLanguage = "de") {
+  const numLat = Number(lat);
+  const numLng = Number(lng);
+  if (!validCoordinates(numLat, numLng)) throw new Error("Für die DZT-Abfrage sind gültige Standortkoordinaten erforderlich.");
+  const radius = normalizeRadiusKm(radiusKm);
+  const language = normalizePreferredLanguage(preferredLanguage);
+  const geoShapeJson = JSON.stringify({
+    query: {
+      geo_shape: {
+        geometry: {
+          shape: { type: "circle", radius: `${radius}km`, coordinates: [numLng, numLat] },
+          relation: "intersects"
         }
       }
-    });
-    geoFilter = `
+    }
+  });
+  const geoFilter = `
   ?search a inst:dzt-geo-shapes ;
     con:query ${JSON.stringify(geoShapeJson)} ;
     con:entities ?s .`;
-  }
 
   return `PREFIX inst: <http://www.ontotext.com/connectors/elasticsearch/instance#>
 PREFIX con: <http://www.ontotext.com/connectors/elasticsearch#>
 PREFIX schema: <https://schema.org/>
 
-SELECT ?s 
-  (SAMPLE(?nameDe) AS ?name)
-  (SAMPLE(?descDe) AS ?desc)
+SELECT ?s
+  (SAMPLE(?namePreferredVal) AS ?namePreferred)
+  (SAMPLE(?nameDeVal) AS ?nameDe)
+  (SAMPLE(?nameNeutralVal) AS ?nameNeutral)
+  (SAMPLE(?nameAnyVal) AS ?name)
+  (SAMPLE(?descPreferredVal) AS ?descPreferred)
+  (SAMPLE(?descDeVal) AS ?descDe)
+  (SAMPLE(?descNeutralVal) AS ?descNeutral)
+  (SAMPLE(?descAnyVal) AS ?desc)
   (SAMPLE(?latVal) AS ?lat)
   (SAMPLE(?lngVal) AS ?lng)
   (SAMPLE(?streetVal) AS ?street)
@@ -547,18 +608,29 @@ SELECT ?s
   (SAMPLE(?telVal) AS ?telephone)
   (SAMPLE(?urlVal) AS ?url)
   (SAMPLE(?menuVal) AS ?hasMenu)
-  (SAMPLE(?imgUrl) AS ?img)
-  (GROUP_CONCAT(DISTINCT ?imgUrl; separator="|") AS ?imgs)
+  (SAMPLE(?dataLicenseValue) AS ?dataLicense)
+  (GROUP_CONCAT(DISTINCT ?publisherResolved; separator=" · ") AS ?publisher)
+  (GROUP_CONCAT(DISTINCT ?sdPublisherResolved; separator=" · ") AS ?sdPublisher)
+  (GROUP_CONCAT(DISTINCT ?dataCreditValue; separator=" · ") AS ?dataCreditText)
+  (GROUP_CONCAT(DISTINCT ?dataCopyrightValue; separator=" · ") AS ?dataCopyrightNotice)
+  (GROUP_CONCAT(DISTINCT ?dataLicenseAuthorValue; separator=" · ") AS ?dataLicenseAuthors)
+  (GROUP_CONCAT(DISTINCT ?dataLicenseCopyrightHolderValue; separator=" · ") AS ?dataLicenseCopyrightHolders)
   (GROUP_CONCAT(DISTINCT ?type; separator=",") AS ?types)
+  (GROUP_CONCAT(DISTINCT ?imageRecord; separator="\\n") AS ?imageRecords)
 WHERE {${geoFilter}
-  ?s a schema:Winery .
-  OPTIONAL { ?s a ?type }
-  ?s schema:name ?nameDe .
-  FILTER(lang(?nameDe) = "de" || lang(?nameDe) = "")
+  ?s a schema:Winery ;
+    schema:name ?nameAnyVal .
+  OPTIONAL { ?s schema:name ?namePreferredVal . FILTER(LCASE(LANG(?namePreferredVal)) = "${language}") }
+  OPTIONAL { ?s schema:name ?nameDeVal . FILTER(LCASE(LANG(?nameDeVal)) = "de") }
+  OPTIONAL { ?s schema:name ?nameNeutralVal . FILTER(LANG(?nameNeutralVal) = "") }
   OPTIONAL {
-    ?s schema:description ?descDe .
-    FILTER(lang(?descDe) = "de" || lang(?descDe) = "")
+    ?s schema:description/schema:text? ?descAnyVal .
+    FILTER(isLiteral(?descAnyVal))
+    OPTIONAL { ?s schema:description/schema:text? ?descPreferredVal . FILTER(isLiteral(?descPreferredVal) && LCASE(LANG(?descPreferredVal)) = "${language}") }
+    OPTIONAL { ?s schema:description/schema:text? ?descDeVal . FILTER(isLiteral(?descDeVal) && LCASE(LANG(?descDeVal)) = "de") }
+    OPTIONAL { ?s schema:description/schema:text? ?descNeutralVal . FILTER(isLiteral(?descNeutralVal) && LANG(?descNeutralVal) = "") }
   }
+  OPTIONAL { ?s a ?type }
   OPTIONAL {
     ?s schema:geo ?geo .
     ?geo schema:latitude ?latVal .
@@ -574,69 +646,216 @@ WHERE {${geoFilter}
   OPTIONAL { ?s schema:url ?urlVal }
   OPTIONAL { ?s schema:hasMenu ?menuVal }
   OPTIONAL { ?s schema:isAccessibleForFree ?freeVal }
+  OPTIONAL { ?s schema:license ?directDataLicenseValue }
+  OPTIONAL {
+    ?s schema:sdLicense ?dataLicenseNode .
+    OPTIONAL { ?dataLicenseNode schema:license ?linkedDataLicenseValue }
+    OPTIONAL {
+      ?dataLicenseNode schema:author ?dataLicenseAuthorNode .
+      OPTIONAL { ?dataLicenseAuthorNode schema:name ?dataLicenseAuthorNameValue . FILTER(isLiteral(?dataLicenseAuthorNameValue)) }
+      BIND(IF(BOUND(?dataLicenseAuthorNameValue), ?dataLicenseAuthorNameValue,
+        IF(isLiteral(?dataLicenseAuthorNode), ?dataLicenseAuthorNode, "")) AS ?dataLicenseAuthorValue)
+      FILTER(STR(?dataLicenseAuthorValue) != "")
+    }
+    OPTIONAL {
+      ?dataLicenseNode schema:copyrightHolder ?dataLicenseCopyrightHolderNode .
+      OPTIONAL { ?dataLicenseCopyrightHolderNode schema:name ?dataLicenseCopyrightHolderNameValue . FILTER(isLiteral(?dataLicenseCopyrightHolderNameValue)) }
+      BIND(IF(BOUND(?dataLicenseCopyrightHolderNameValue), ?dataLicenseCopyrightHolderNameValue,
+        IF(isLiteral(?dataLicenseCopyrightHolderNode), ?dataLicenseCopyrightHolderNode, "")) AS ?dataLicenseCopyrightHolderValue)
+      FILTER(STR(?dataLicenseCopyrightHolderValue) != "")
+    }
+  }
+  BIND(COALESCE(?linkedDataLicenseValue, ?directDataLicenseValue, "") AS ?dataLicenseValue)
+  OPTIONAL {
+    ?s schema:publisher ?publisherNode .
+    OPTIONAL { ?publisherNode schema:name ?publisherNameValue . FILTER(isLiteral(?publisherNameValue)) }
+    BIND(IF(BOUND(?publisherNameValue), ?publisherNameValue,
+      IF(isLiteral(?publisherNode), ?publisherNode, "")) AS ?publisherResolved)
+    FILTER(STR(?publisherResolved) != "")
+  }
+  OPTIONAL {
+    ?s schema:sdPublisher ?sdPublisherNode .
+    OPTIONAL { ?sdPublisherNode schema:name ?sdPublisherNameValue . FILTER(isLiteral(?sdPublisherNameValue)) }
+    BIND(IF(BOUND(?sdPublisherNameValue), ?sdPublisherNameValue,
+      IF(isLiteral(?sdPublisherNode), ?sdPublisherNode, "")) AS ?sdPublisherResolved)
+    FILTER(STR(?sdPublisherResolved) != "")
+  }
+  OPTIONAL { ?s schema:creditText ?dataCreditValue . FILTER(isLiteral(?dataCreditValue)) }
+  OPTIONAL { ?s schema:copyrightNotice ?dataCopyrightValue . FILTER(isLiteral(?dataCopyrightValue)) }
   OPTIONAL {
     ?s schema:image ?imgObj .
-    ?imgObj schema:contentUrl ?imgUrl .
+    ?imgObj schema:contentUrl ?imageUrlValue .
+    OPTIONAL { ?imgObj schema:license ?imageLicenseValue }
+    OPTIONAL { ?imgObj schema:creditText ?imageCreditValue . FILTER(isLiteral(?imageCreditValue)) }
+    OPTIONAL { ?imgObj schema:creator ?imageCreatorLiteral . FILTER(isLiteral(?imageCreatorLiteral)) }
+    OPTIONAL {
+      ?imgObj schema:creator ?imageCreatorNode .
+      ?imageCreatorNode schema:name ?imageCreatorNameValue .
+    }
+    BIND(COALESCE(?imageCreatorNameValue, ?imageCreatorLiteral, "") AS ?imageCreatorResolved)
+    OPTIONAL {
+      ?imgObj schema:copyrightHolder ?imageCopyrightHolderNode .
+      OPTIONAL { ?imageCopyrightHolderNode schema:name ?imageCopyrightHolderNameValue . FILTER(isLiteral(?imageCopyrightHolderNameValue)) }
+    }
+    BIND(IF(BOUND(?imageCopyrightHolderNameValue), ?imageCopyrightHolderNameValue,
+      IF(BOUND(?imageCopyrightHolderNode), IF(isLiteral(?imageCopyrightHolderNode), ?imageCopyrightHolderNode, ""), "")) AS ?imageCopyrightHolderResolved)
+    OPTIONAL { ?imgObj schema:copyrightNotice ?imageCopyrightValue . FILTER(isLiteral(?imageCopyrightValue)) }
+    OPTIONAL { ?imgObj schema:url ?imageSourceValue }
+    BIND(CONCAT(
+      ENCODE_FOR_URI(STR(?imageUrlValue)), "|",
+      ENCODE_FOR_URI(STR(COALESCE(?imageLicenseValue, ""))), "|",
+      ENCODE_FOR_URI(STR(COALESCE(?imageCreditValue, ""))), "|",
+      ENCODE_FOR_URI(STR(COALESCE(?imageCreatorResolved, ""))), "|",
+      ENCODE_FOR_URI(STR(COALESCE(?imageCopyrightHolderResolved, ""))), "|",
+      ENCODE_FOR_URI(STR(COALESCE(?imageCopyrightValue, ""))), "|",
+      ENCODE_FOR_URI(STR(COALESCE(?imageSourceValue, "")))
+    ) AS ?imageRecord)
   }
 }
 GROUP BY ?s
 LIMIT 300`;
 }
 
-function convertSparqlBindingToPoi(b) {
-  const types = b.types && b.types.value ? b.types.value.split(",") : ["https://schema.org/Winery"];
-  let images = [];
-  if (b.imgs && b.imgs.value) {
-    const urls = b.imgs.value.split("|").map(u => u.trim()).filter(Boolean);
-    images = urls.map(u => ({ "@type": "ImageObject", "schema:contentUrl": u }));
-  } else if (b.img && b.img.value) {
-    images = [{ "@type": "ImageObject", "schema:contentUrl": b.img.value }];
-  }
+function sparqlValue(binding, key, fallback = "") {
+  const value = binding && binding[key] && binding[key].value;
+  return value == null ? fallback : String(value);
+}
 
+function chooseLocalizedBinding(binding, preferredKey, germanKey, neutralKey, anyKey, fallback = "") {
+  return sparqlValue(binding, preferredKey) || sparqlValue(binding, germanKey) ||
+    sparqlValue(binding, neutralKey) || sparqlValue(binding, anyKey) || fallback;
+}
+
+function decodeImageRecords(value) {
+  if (!value) return [];
+  return String(value).split(/\r?\n/).map((record) => {
+    const fields = record.split("|");
+    if (fields.length !== 7) return null;
+    try {
+      const [url, license, credit, creator, copyrightHolder, copyright, sourceUrl] = fields.map((field) => decodeURIComponent(field));
+      return {
+        "@type": "ImageObject",
+        "schema:contentUrl": url,
+        "schema:license": license,
+        "schema:creditText": credit,
+        "schema:creator": creator,
+        "schema:copyrightHolder": copyrightHolder,
+        "schema:copyrightNotice": copyright,
+        "schema:url": sourceUrl,
+      };
+    } catch (_) {
+      return null;
+    }
+  }).filter(Boolean);
+}
+
+function convertSparqlBindingToPoi(binding, preferredLanguage = "de") {
+  const language = normalizePreferredLanguage(preferredLanguage);
+  const types = sparqlValue(binding, "types").split(",").filter(Boolean);
+  const images = decodeImageRecords(sparqlValue(binding, "imageRecords"));
+  const lat = sparqlValue(binding, "lat");
+  const lng = sparqlValue(binding, "lng");
   return {
-    "@id": b.s ? b.s.value : "",
-    "@type": types,
-    "schema:name": b.name ? b.name.value : "Weingut",
-    "schema:description": b.desc ? b.desc.value : "",
-    "schema:geo": (b.lat && b.lng) ? {
+    "@context": { schema: "https://schema.org/" },
+    "@id": sparqlValue(binding, "s"),
+    "@type": types.length ? types : ["https://schema.org/Winery"],
+    "schema:name": chooseLocalizedBinding(binding, "namePreferred", "nameDe", "nameNeutral", "name", "Weingut"),
+    "schema:description": chooseLocalizedBinding(binding, "descPreferred", "descDe", "descNeutral", "desc"),
+    "schema:geo": lat !== "" && lng !== "" ? {
       "@type": "GeoCoordinates",
-      "schema:latitude": parseFloat(b.lat.value),
-      "schema:longitude": parseFloat(b.lng.value)
+      "schema:latitude": Number(lat),
+      "schema:longitude": Number(lng),
     } : null,
     "schema:address": {
       "@type": "PostalAddress",
-      "schema:streetAddress": b.street ? b.street.value : "",
-      "schema:postalCode": b.postal ? b.postal.value : "",
-      "schema:addressLocality": b.city ? b.city.value : ""
+      "schema:streetAddress": sparqlValue(binding, "street"),
+      "schema:postalCode": sparqlValue(binding, "postal"),
+      "schema:addressLocality": sparqlValue(binding, "city"),
     },
-    "schema:telephone": b.telephone ? b.telephone.value : "",
-    "schema:url": b.url ? b.url.value : "",
-    "schema:hasMenu": b.hasMenu ? b.hasMenu.value : "",
+    "schema:telephone": sparqlValue(binding, "telephone"),
+    "schema:url": sparqlValue(binding, "url"),
+    "schema:hasMenu": sparqlValue(binding, "hasMenu"),
+    "schema:license": sparqlValue(binding, "dataLicense"),
+    "schema:publisher": sparqlValue(binding, "sdPublisher") || sparqlValue(binding, "publisher"),
+    "schema:creditText": [
+      sparqlValue(binding, "dataCreditText"),
+      sparqlValue(binding, "dataLicenseAuthors") ? `Autor: ${sparqlValue(binding, "dataLicenseAuthors")}` : "",
+    ].filter(Boolean).join(" · "),
+    "schema:copyrightNotice": [
+      sparqlValue(binding, "dataCopyrightNotice"),
+      sparqlValue(binding, "dataLicenseCopyrightHolders") ? `Rechteinhaber: ${sparqlValue(binding, "dataLicenseCopyrightHolders")}` : "",
+    ].filter(Boolean).join(" · "),
     "schema:image": images.length > 1 ? images : (images[0] || null),
-    "schema:isAccessibleForFree": b.free ? (b.free.value === "true" || b.free.value === "1") : undefined
+    "schema:isAccessibleForFree": binding && binding.free ? (binding.free.value === "true" || binding.free.value === "1") : undefined,
   };
 }
 
+function isLocalDemoHost() {
+  const hostname = String(window.location.hostname || "").toLowerCase();
+  return hostname === "localhost" || hostname === "127.0.0.1";
+}
+
+function resolveLocalDemoAssetUrl(value) {
+  if (String(value || "").trim() !== "assets/demo-weingueter.svg") return String(value || "");
+  const base = window.location.href || `${window.location.origin || "http://localhost"}${window.location.pathname || "/app/"}`;
+  return new URL(getOdasAssetPath("demo-weingueter.svg"), base).href;
+}
+
+function prepareLocalDemoPoi(poi) {
+  if (!poi || typeof poi !== "object") return poi;
+  const copy = JSON.parse(JSON.stringify(poi));
+  const image = copy["schema:image"];
+  const rewrite = (item) => {
+    if (typeof item === "string") return resolveLocalDemoAssetUrl(item);
+    if (!item || typeof item !== "object") return item;
+    const contentKey = Object.prototype.hasOwnProperty.call(item, "schema:contentUrl") ? "schema:contentUrl" : "contentUrl";
+    if (item[contentKey]) item[contentKey] = resolveLocalDemoAssetUrl(item[contentKey]);
+    return item;
+  };
+  copy["schema:image"] = Array.isArray(image) ? image.map(rewrite) : rewrite(image);
+  return copy;
+}
+
 async function loadDztData(state) {
-  const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-  
-  // Wenn lokale Demo-POIs verfügbar sind und wir lokal laufen:
-  if (isLocalhost) {
+  if (isLocalDemoHost()) {
     const localDemos = await getLocalDemoPoisFallback(state);
     if (localDemos.length > 0) {
-      console.info("Lokale Entwicklung: Verwende Demo-Weingüter aus assets/demo-weingueter.json.");
+      state.demoMode = true;
+      console.info("Lokale Entwicklung: Verwende synthetische Demo-Weingüter aus assets/demo-weingueter.json.");
       return localDemos;
     }
   }
 
-  // SessionStorage-Cache prüfen (beschleunigt Kaltstart & Reloads auf Mobile und Desktop drastisch)
-  const cacheKey = `wg_dzt_cache_v1_${state.lat.toFixed(4)}_${state.lng.toFixed(4)}_${state.umkreis}`;
+  const configuredEndpoint = getOdasApiUrl(state.config, "dztsparql");
+  if (!configuredEndpoint) {
+    state.dataSourceMissing = true;
+    return [];
+  }
+  let endpoint;
+  try {
+    endpoint = new URL(configuredEndpoint);
+  } catch (_) {
+    throw new Error("Die konfigurierte DZT-SPARQL-Quelle ist keine gültige URL.");
+  }
+  if (endpoint.href !== DZT_SPARQL_ENDPOINT) {
+    throw new Error(`Der dztsparql-Endpunkt muss auf ${DZT_SPARQL_ENDPOINT} zeigen.`);
+  }
+
+  const language = normalizePreferredLanguage(state.standardSprache || state.config.standardSprache);
+  const cacheKey = `wg_dzt_cache_v2_${encodeURIComponent(JSON.stringify([
+    configuredEndpoint,
+    state.lat,
+    state.lng,
+    state.umkreis,
+    state.ort,
+    language,
+  ]))}`;
   try {
     const cachedEntry = sessionStorage.getItem(cacheKey);
     if (cachedEntry) {
       const parsed = JSON.parse(cachedEntry);
-      const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 Stunden Gültigkeit
-      if (parsed && parsed.timestamp && (Date.now() - parsed.timestamp < CACHE_TTL_MS) && Array.isArray(parsed.data) && parsed.data.length > 0) {
+      const cacheTtlMs = 2 * 60 * 60 * 1000;
+      if (parsed && parsed.timestamp && Date.now() - parsed.timestamp < cacheTtlMs && Array.isArray(parsed.data)) {
         console.info(`DZT-Daten aus Session-Cache geladen (${parsed.data.length} Weinorte)`);
         return parsed.data;
       }
@@ -645,86 +864,68 @@ async function loadDztData(state) {
     console.warn("Session-Cache konnte nicht gelesen werden:", cacheErr);
   }
 
-  // Endpunkt ermitteln (Standard: ts/v1/kg/sparql)
-  let baseEndpoint = "ts/v1/kg/sparql";
-  if (Array.isArray(state.config.apiurls)) {
-    const sparqlEntry = state.config.apiurls.find(u => u && (u.name === "dztsparql" || (u.url && u.url.includes("sparql"))));
-    if (sparqlEntry && sparqlEntry.url) {
-      const derived = dztApiPath(sparqlEntry.url);
-      if (derived) baseEndpoint = derived;
-    }
+  const readableQuery = buildDztSparqlQuery(state.lat, state.lng, state.umkreis, language);
+  // Der Relay kodiert den GET-Pfad ein zweites Mal. Nur die selbst erzeugte
+  // Abfrage verkürzen; Ergebnisnamen, Zeichenketten und IRIs bleiben unverändert.
+  const resultNames = new Set(["?s", ...Array.from(readableQuery.slice(0, readableQuery.indexOf("WHERE")).matchAll(/AS\s+(\?\w+)/g), (match) => match[1])]);
+  const internalNames = new Map();
+  const query = readableQuery.split(/("(?:\\.|[^"\\])*"|<https?:\/\/[^>]*>)/g).map((part, index) => index % 2 ? part : part
+    .replace(/\?[A-Za-z]\w*/g, (name) => {
+      if (resultNames.has(name)) return name;
+      if (!internalNames.has(name)) internalNames.set(name, `?v${internalNames.size.toString(36)}`);
+      return internalNames.get(name);
+    })
+    .replace(/\s+/g, " ").replace(/\s*([{}();,.=])\s*/g, "$1").replace(/\s+\?/g, "?").trim()
+  ).join("");
+  const endpointPath = endpoint.pathname.replace(/^\/+api\/?/, "");
+  const path = `${endpointPath}?query=${encodeURIComponent(query)}`;
+  const relayUrl = `${getOdasAppBasePath()}/dzt?path=${encodeURIComponent(path)}`;
+  const response = await fetch(relayUrl, { headers: { "Accept": "application/sparql-results+json" } });
+
+  if (response.status === 401 || response.status === 403) {
+    throw new Error("Der Zugang zum DZT Knowledge Graph wurde abgelehnt (API-Key im Store prüfen).");
+  }
+  if (response.status === 429) {
+    throw new Error("Das Abfragelimit der DZT-Schnittstelle wurde erreicht. Bitte versuchen Sie es später erneut.");
+  }
+  if (!response.ok) {
+    throw new Error(`DZT-Schnittstelle antwortet mit Status HTTP ${response.status}`);
   }
 
-  const query = buildDztSparqlQuery(state.lat, state.lng, state.umkreis);
-  const path = `${baseEndpoint}?${new URLSearchParams({ query }).toString()}`;
-  const relayUrl = `${getOdasAppBasePath()}/dzt?path=${encodeURIComponent(path)}`;
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    throw new Error(`Die DZT-Schnittstelle liefert kein gültiges JSON: ${error.message}`);
+  }
+  if (!data || !data.results || !Array.isArray(data.results.bindings)) {
+    throw new Error("Die DZT-Schnittstelle liefert eine unerwartete JSON-Antwortstruktur; erwartet wird results.bindings.");
+  }
+  const resultPois = data.results.bindings.map((binding) => {
+    if (!binding || !binding.s || typeof binding.s.value !== "string") {
+      throw new Error("Die DZT-Schnittstelle enthält einen ungültigen SPARQL-Datensatz.");
+    }
+    return convertSparqlBindingToPoi(binding, language);
+  });
 
   try {
-    const response = await fetch(relayUrl, {
-      headers: { "Accept": "application/sparql-results+json" }
-    });
-
-    if (response.status === 401 || response.status === 403) {
-      throw new Error("Der Zugang zum DZT Knowledge Graph wurde abgelehnt (API-Key im Store prüfen).");
-    }
-    if (response.status === 429) {
-      throw new Error("Das Abfragelimit der DZT-Schnittstelle wurde erreicht. Bitte versuchen Sie es später erneut.");
-    }
-    if (response.status === 404 && isLocalhost) {
-      const fallback = await getLocalDemoPoisFallback(state);
-      if (fallback.length > 0) return fallback;
-    }
-    if (!response.ok) {
-      throw new Error(`DZT-Schnittstelle antwortet mit Status HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-    let resultPois = [];
-    if (data && data.results && Array.isArray(data.results.bindings)) {
-      resultPois = data.results.bindings.map(convertSparqlBindingToPoi);
-    } else if (Array.isArray(data)) {
-      resultPois = data;
-    } else if (data && Array.isArray(data["@graph"])) {
-      resultPois = data["@graph"];
-    } else if (data && Array.isArray(data.things)) {
-      resultPois = data.things;
-    }
-
-    // In Session-Cache für blitzschnelle Wiederverwendung ablegen
-    if (resultPois && resultPois.length > 0) {
-      try {
-        sessionStorage.setItem(cacheKey, JSON.stringify({
-          timestamp: Date.now(),
-          data: resultPois
-        }));
-      } catch (cacheStoreErr) {
-        console.warn("Session-Cache konnte nicht geschrieben werden (z. B. Quota oder Private Mode):", cacheStoreErr);
-      }
-    }
-
-    return resultPois;
-  } catch (err) {
-    const fallback = await getLocalDemoPoisFallback(state);
-    if (fallback.length > 0) {
-      console.warn("Relay-Abruf fehlgeschlagen, verwende Demo-Fixture:", err.message);
-      return fallback;
-    }
-    throw err;
+    sessionStorage.setItem(cacheKey, JSON.stringify({ timestamp: Date.now(), data: resultPois }));
+  } catch (cacheStoreErr) {
+    console.warn("Session-Cache konnte nicht geschrieben werden (z. B. Quota oder Private Mode):", cacheStoreErr);
   }
+  return resultPois;
 }
 
-async function getLocalDemoPoisFallback(state) {
-  if (Array.isArray(state.config.demoPois) && state.config.demoPois.length > 0) {
-    return state.config.demoPois;
-  }
+async function getLocalDemoPoisFallback() {
+  if (!isLocalDemoHost()) return [];
   try {
-    const res = await fetch("assets/demo-weingueter.json");
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data;
-    }
-  } catch (_) {}
-  return [];
+    const response = await fetch(getOdasAssetPath("demo-weingueter.json"));
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data) ? data.map(prepareLocalDemoPoi) : [];
+  } catch (_) {
+    return [];
+  }
 }
 
 function getOdasAppBasePath() {
@@ -766,29 +967,126 @@ function classifyWinery(item) {
   return types;
 }
 
-function normalizeDztPoi(rawPoi, refLat, refLng) {
+function schemaProperty(object, name) {
+  if (!object || typeof object !== "object") return undefined;
+  return object[`schema:${name}`] ?? object[`https://schema.org/${name}`] ?? object[name];
+}
+
+function readSchemaText(value) {
+  if (value == null) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "object") {
+    if (value["@value"] != null) return String(value["@value"]);
+    if (value["schema:name"] != null) return readSchemaText(value["schema:name"]);
+    if (value.name != null) return readSchemaText(value.name);
+    if (value["@id"] != null) return String(value["@id"]);
+  }
+  return "";
+}
+
+function readLocalizedText(value, preferredLanguage = "de") {
+  const values = Array.isArray(value) ? value : [value];
+  const entries = values.map((entry) => ({
+    text: readSchemaText(entry),
+    language: String(entry && (entry["@language"] || entry.lang || entry["xml:lang"]) || "").toLowerCase(),
+  })).filter((entry) => entry.text);
+  const language = normalizePreferredLanguage(preferredLanguage);
+  return (entries.find((entry) => entry.language === language) ||
+    entries.find((entry) => entry.language === "de") ||
+    entries.find((entry) => !entry.language) || entries[0] || { text: "" }).text;
+}
+
+function readLocalizedDescription(value, preferredLanguage = "de") {
+  const values = Array.isArray(value) ? value : [value];
+  const entries = values.flatMap((entry) => {
+    const nestedText = schemaProperty(entry, "text");
+    const textValues = nestedText == null ? [entry] : (Array.isArray(nestedText) ? nestedText : [nestedText]);
+    return textValues.map((textEntry) => ({
+      text: readSchemaLiteralText(textEntry),
+      language: String((textEntry && (textEntry["@language"] || textEntry.lang || textEntry["xml:lang"])) ||
+        (entry && (entry["@language"] || entry.lang || entry["xml:lang"])) || "").toLowerCase(),
+    })).filter((item) => item.text);
+  });
+  const language = normalizePreferredLanguage(preferredLanguage);
+  return (entries.find((entry) => entry.language === language) ||
+    entries.find((entry) => entry.language === "de") ||
+    entries.find((entry) => !entry.language) || entries[0] || { text: "" }).text;
+}
+
+function knownImageLicense(value) {
+  const raw = readSchemaText(value).trim();
+  const key = raw.toLowerCase().replace(/\/+$/, "");
+  const licenses = {
+    "https://creativecommons.org/publicdomain/zero/1.0": { url: "https://creativecommons.org/publicdomain/zero/1.0/", label: "CC0 1.0 Universal", requiresAttribution: false, requiresSource: false },
+    "cc0": { url: "https://creativecommons.org/publicdomain/zero/1.0/", label: "CC0 1.0 Universal", requiresAttribution: false, requiresSource: false },
+    "cc0 1.0 universal": { url: "https://creativecommons.org/publicdomain/zero/1.0/", label: "CC0 1.0 Universal", requiresAttribution: false, requiresSource: false },
+    "https://creativecommons.org/licenses/by/4.0": { url: "https://creativecommons.org/licenses/by/4.0/", label: "CC BY 4.0", requiresAttribution: true, requiresSource: true },
+    "cc by 4.0": { url: "https://creativecommons.org/licenses/by/4.0/", label: "CC BY 4.0", requiresAttribution: true, requiresSource: true },
+    "cc-by-4.0": { url: "https://creativecommons.org/licenses/by/4.0/", label: "CC BY 4.0", requiresAttribution: true, requiresSource: true },
+    "https://creativecommons.org/licenses/by-sa/4.0": { url: "https://creativecommons.org/licenses/by-sa/4.0/", label: "CC BY-SA 4.0", requiresAttribution: true, requiresSource: true },
+    "cc by-sa 4.0": { url: "https://creativecommons.org/licenses/by-sa/4.0/", label: "CC BY-SA 4.0", requiresAttribution: true, requiresSource: true },
+    "https://creativecommons.org/licenses/by-nc-nd/4.0": { url: "https://creativecommons.org/licenses/by-nc-nd/4.0/", label: "CC BY-NC-ND 4.0", requiresAttribution: true, requiresSource: true },
+    "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.de": { url: "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.de", label: "CC BY-NC-ND 4.0", requiresAttribution: true, requiresSource: true },
+    "cc-by-sa-4.0": { url: "https://creativecommons.org/licenses/by-sa/4.0/", label: "CC BY-SA 4.0", requiresAttribution: true, requiresSource: true },
+    "https://opensource.org/license/mit": { url: "https://opensource.org/license/mit", label: "MIT License", requiresAttribution: true, requiresSource: false },
+    "mit": { url: "https://opensource.org/license/mit", label: "MIT License", requiresAttribution: true, requiresSource: false },
+    "mit license": { url: "https://opensource.org/license/mit", label: "MIT License", requiresAttribution: true, requiresSource: false },
+  };
+  return licenses[key] || null;
+}
+
+function readAttributionText(value) {
+  let text = "";
+  if (typeof value === "string" || typeof value === "number") text = String(value);
+  else if (value && typeof value === "object") {
+    if (value["@value"] != null) text = String(value["@value"]);
+    else if (schemaProperty(value, "name") != null) text = readSchemaText(schemaProperty(value, "name"));
+  }
+  text = text.trim();
+  return text && !/^[a-z][a-z\d+.-]*:\S*$/i.test(text) ? text : "";
+}
+
+function readSchemaLiteralText(value) {
+  if (typeof value === "string" || typeof value === "number") return String(value).trim();
+  if (value && typeof value === "object" && value["@value"] != null) return String(value["@value"]).trim();
+  return "";
+}
+
+function normalizeLicensedImage(image) {
+  if (!image || typeof image !== "object") return null;
+  const url = safeHttpUrl(readSchemaText(schemaProperty(image, "contentUrl") || image.url));
+  const licenseInfo = knownImageLicense(schemaProperty(image, "license"));
+  if (!url || !licenseInfo) return null;
+  const creator = readAttributionText(schemaProperty(image, "creator"));
+  const holder = readAttributionText(schemaProperty(image, "copyrightHolder"));
+  const credits = [
+    readAttributionText(schemaProperty(image, "creditText") || image.credit),
+    creator ? `Urheber: ${creator}` : "",
+    holder ? `Rechteinhaber: ${holder}` : "",
+    readAttributionText(schemaProperty(image, "copyrightNotice") || image.copyright),
+  ].filter(Boolean);
+  const copyright = [...new Set(credits)].join(" · ");
+  const explicitSourceUrl = safeHttpUrl(readSchemaText(schemaProperty(image, "url") || image.urlSource || image.sourceUrl));
+  const sourceUrl = explicitSourceUrl || url;
+  if (licenseInfo.requiresAttribution && !copyright) return null;
+  if (licenseInfo.requiresSource && !sourceUrl) return null;
+  return { url, license: licenseInfo.url, copyright, sourceUrl };
+}
+
+function normalizeDztPoi(rawPoi, refLat, refLng, preferredLanguage = "de") {
   if (!rawPoi) return null;
 
   const id = rawPoi["@id"] || `poi_${Math.random().toString(36).substr(2, 9)}`;
-  const name = typeof rawPoi["schema:name"] === "object" ? (rawPoi["schema:name"]["@value"] || "") : (rawPoi["schema:name"] || "Weingut");
-  
-  let description = "";
-  if (Array.isArray(rawPoi["schema:description"])) {
-    const deEntry = rawPoi["schema:description"].find(d => typeof d === "object" && d["@language"] === "de") || rawPoi["schema:description"][0];
-    description = typeof deEntry === "object" ? (deEntry["@value"] || "") : String(deEntry || "");
-  } else if (typeof rawPoi["schema:description"] === "object") {
-    description = rawPoi["schema:description"]["@value"] || "";
-  } else {
-    description = rawPoi["schema:description"] || "";
-  }
+  const name = readLocalizedText(rawPoi["schema:name"] || rawPoi.name || "Weingut", preferredLanguage);
+  const description = readLocalizedDescription(schemaProperty(rawPoi, "description") || "", preferredLanguage);
 
   // Geokoordinaten
   let lat = null;
   let lng = null;
   const geo = rawPoi["schema:geo"];
   if (geo) {
-    const rawLat = geo["schema:latitude"] || geo["latitude"];
-    const rawLng = geo["schema:longitude"] || geo["longitude"];
+    const rawLat = geo["schema:latitude"] ?? geo["latitude"];
+    const rawLng = geo["schema:longitude"] ?? geo["longitude"];
     lat = typeof rawLat === "object" ? parseFloat(rawLat["@value"]) : parseFloat(rawLat);
     lng = typeof rawLng === "object" ? parseFloat(rawLng["@value"]) : parseFloat(rawLng);
   }
@@ -800,46 +1098,24 @@ function normalizeDztPoi(rawPoi, refLat, refLng) {
   const city = addr["schema:addressLocality"] || addr["schema:adressLocality"] || addr["addressLocality"] || "";
   const region = addr["schema:addressRegion"] || addr["addressRegion"] || "";
 
-  // Bild
-  let imageUrl = "";
-  let imageLicense = "";
-  let imageCopyright = "";
-  let images = [];
-  const img = rawPoi["schema:image"];
-  if (Array.isArray(img) && img.length > 0) {
-    images = img.map(i => {
-      if (typeof i === "string") {
-        return { url: i, license: "", copyright: "" };
-      } else if (typeof i === "object" && i) {
-        return {
-          url: i["schema:contentUrl"] || i["contentUrl"] || "",
-          license: i["schema:license"] || i["license"] || "",
-          copyright: i["schema:copyrightNotice"] || i["copyrightNotice"] || ""
-        };
-      }
-      return null;
-    }).filter(i => i && i.url);
-    if (images.length > 0) {
-      imageUrl = images[0].url;
-      imageLicense = images[0].license;
-      imageCopyright = images[0].copyright;
-    }
-  } else if (typeof img === "object" && img) {
-    const url = img["schema:contentUrl"] || img["contentUrl"] || "";
-    if (url) {
-      imageUrl = url;
-      imageLicense = img["schema:license"] || img["license"] || "";
-      imageCopyright = img["schema:copyrightNotice"] || img["copyrightNotice"] || "";
-      images = [{ url, license: imageLicense, copyright: imageCopyright }];
-    }
-  } else if (typeof img === "string" && img) {
-    imageUrl = img;
-    images = [{ url: img, license: "", copyright: "" }];
-  }
+  const rawImages = schemaProperty(rawPoi, "image");
+  const images = (Array.isArray(rawImages) ? rawImages : [rawImages])
+    .map(normalizeLicensedImage)
+    .filter(Boolean);
+  const imageUrl = images.length ? images[0].url : "";
+  const imageLicense = images.length ? images[0].license : "";
+  const imageCopyright = images.length ? images[0].copyright : "";
+  const dataLicenseValue = readSchemaText(rawPoi["schema:license"] || rawPoi.license);
+  const dataLicense = {
+    url: safeHttpUrl(dataLicenseValue) || dataLicenseValue,
+    attribution: readAttributionText(rawPoi["schema:sdPublisher"] || rawPoi["schema:publisher"] || rawPoi.publisher),
+  };
+  const creditText = readSchemaLiteralText(rawPoi["schema:creditText"] || rawPoi.creditText);
+  const copyrightNotice = readSchemaLiteralText(rawPoi["schema:copyrightNotice"] || rawPoi.copyrightNotice);
 
   // Distanzberechnung
   let distanceKm = null;
-  if (lat !== null && lng !== null && refLat && refLng && !isNaN(lat) && !isNaN(lng)) {
+  if (lat !== null && lng !== null && validCoordinates(Number(refLat), Number(refLng)) && validCoordinates(lat, lng)) {
     const R = 6371; // km
     const dLat = (lat - refLat) * Math.PI / 180;
     const dLon = (lng - refLng) * Math.PI / 180;
@@ -869,6 +1145,9 @@ function normalizeDztPoi(rawPoi, refLat, refLng) {
     imageLicense,
     imageCopyright,
     images,
+    dataLicense,
+    creditText,
+    copyrightNotice,
     distanceKm,
     telephone,
     url,
@@ -943,6 +1222,67 @@ function renderWineCardBadges(poi) {
   return cats.map(c => map[c] || "").filter(Boolean).join(" ");
 }
 
+function renderDataRights(poi) {
+  const rights = poi && poi.dataLicense ? poi.dataLicense : {};
+  const licenseValue = String(rights.url || "").trim();
+  const licenseUrl = safeHttpUrl(licenseValue);
+  const licenseMarkup = licenseValue
+    ? (licenseUrl
+      ? `<a href="${escapeHtml(licenseUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(licenseValue)}</a>`
+      : escapeHtml(licenseValue))
+    : "Im Datensatz nicht ausgewiesen";
+  const attribution = String(rights.attribution || "").trim();
+  const creditText = String((poi && poi.creditText) || "").trim();
+  const copyrightNotice = String((poi && poi.copyrightNotice) || "").trim();
+  return `<section class="sw-rights-block" aria-label="Datenrechte">
+    <h6 class="fw-bold mb-2">Datenrechte</h6>
+    <p class="small mb-1"><strong>Datenlizenz:</strong> ${licenseMarkup}</p>
+    <p class="small ${creditText || copyrightNotice ? "mb-1" : "mb-0"}"><strong>Herausgeber:</strong> ${attribution ? escapeHtml(attribution) : "Im Datensatz nicht ausgewiesen"}</p>
+    ${creditText ? `<p class="small mb-1"><strong>Credit:</strong> ${escapeHtml(creditText)}</p>` : ""}
+    ${copyrightNotice ? `<p class="small mb-0"><strong>Copyright-Hinweis:</strong> ${escapeHtml(copyrightNotice)}</p>` : ""}
+  </section>`;
+}
+
+function renderImageRightsMarkup(image) {
+  const license = image && knownImageLicense(image.license);
+  if (!license) return "";
+  const licenseUrl = safeHttpUrl(license.url);
+  const licenseMarkup = licenseUrl
+    ? `<a href="${escapeHtml(licenseUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(license.label)}</a>`
+    : escapeHtml(license.label);
+  const credit = String(image.copyright || "").trim();
+  const sourceUrl = safeHttpUrl(image.sourceUrl);
+  const attribution = credit
+    ? `<span><strong>Bildnachweis:</strong> ${escapeHtml(credit)}</span>`
+    : `<span>Bei CC0 ist keine Namensnennung erforderlich.</span>`;
+  const source = sourceUrl
+    ? `<span><strong>Quelle:</strong> <a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Bildquelle ansehen</a></span>`
+    : "";
+  return `<div class="sw-image-rights small" aria-label="Bildrechte"><strong>Bildlizenz:</strong> ${licenseMarkup} ${attribution} ${source}</div>`;
+}
+
+function renderSchale4SourceMarkup(state) {
+  const config = state && state.config ? state.config : {};
+  const stand = config.datenStand == null ? "" : String(config.datenStand).trim();
+  return `<div class="mb-4">
+    <h6 class="fw-bold mb-2">Methodik & Datenherkunft</h6>
+    <div class="text-muted small">${config.datenquelleHinweis || "<p>Die Daten stammen aus dem offenen Knowledge Graph der Deutschen Zentrale für Tourismus (DZT).</p>"}
+      ${stand ? `<p class="mt-2 mb-0"><strong>Datenstand:</strong> ${escapeHtml(stand)}</p>` : ""}
+      ${config.weiterfuehrendeLinks ? `<div class="sw-related-links mt-2">${config.weiterfuehrendeLinks}</div>` : ""}
+    </div>
+  </div>`;
+}
+
+function updateSourceNotice(state) {
+  const notice = state.root.querySelector(`#${state.uid}-source-notice`);
+  if (!notice) return;
+  let message = "";
+  if (state.demoMode) message = "Synthetische Demodaten – keine Live-Daten";
+  else if (state.dataSourceMissing) message = "Es ist keine DZT-Datenquelle konfiguriert.";
+  notice.textContent = message;
+  notice.hidden = !message;
+}
+
 // ===========================================================================
 // Layout-Rendering & Event-Handling
 // ===========================================================================
@@ -959,6 +1299,7 @@ function renderInitialLayout(state) {
         <h1 class="sw-top-banner-title">${escapeHtml(state.config.bannerTitel || ((state.config.titel || "Weingüter & Weingenuss") + " " + state.ort))}</h1>
         ${state.config.bannerUntertitel !== "" ? `<p class="sw-top-banner-subtitle">${escapeHtml(state.config.bannerUntertitel || "Winzerhöfe, Vinotheken & Besenwirtschaften in unserer Region")}</p>` : ""}
       </div>
+      <div id="${u}-source-notice" class="sw-source-notice" role="status" hidden></div>
 
       <!-- 2. Schwebende Map-Aktionen oben rechts (QR-Code, Foto-Katalog & Burger-Menü) -->
       <div class="sw-map-top-actions">
@@ -982,7 +1323,7 @@ function renderInitialLayout(state) {
         <!-- Cockpit Header: Brand & Einklapp-Button -->
         <div class="sw-cockpit-header">
           <div class="sw-cockpit-brand">
-            <img src="assets/odas-app-icon.svg" class="sw-cockpit-logo" alt="Logo" onerror="this.src='favicon.png'">
+            <img src="${escapeHtml(getOdasAssetPath("odas-app-icon.svg"))}" class="sw-cockpit-logo" alt="Logo">
             <div class="sw-cockpit-title-wrap">
               <h1 class="sw-cockpit-title">${escapeHtml(state.config.titel || "Weingüter & Weingenuss")}</h1>
               <p class="sw-cockpit-subtitle">${escapeHtml(state.ort)} &bull; ${state.umkreis} km Umkreis</p>
@@ -1097,7 +1438,7 @@ function renderInitialLayout(state) {
       <div id="${u}-loading-overlay" class="sw-loading-overlay">
         <div class="sw-loading-card">
           <div class="sw-loading-icon-wrap">
-            <img src="assets/odas-app-icon.svg" class="sw-loading-icon" alt="Laden…" onerror="this.src='favicon.png'">
+            <img src="${escapeHtml(getOdasAssetPath("odas-app-icon.svg"))}" class="sw-loading-icon" alt="Laden…">
             <div class="sw-loading-spinner-ring"></div>
           </div>
           <h3 class="sw-loading-title">Weinorte werden geladen…</h3>
@@ -1141,12 +1482,7 @@ function renderInitialLayout(state) {
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Schließen"></button>
             </div>
             <div class="modal-body">
-              <div class="mb-4">
-                <h6 class="fw-bold mb-2">Methodik & Datenherkunft</h6>
-                <div class="text-muted small">
-                  ${state.config.datenquelleHinweis || "<p>Die Daten stammen aus dem offenen Knowledge Graph der Deutschen Zentrale für Tourismus (DZT).</p>"}
-                </div>
-              </div>
+              ${renderSchale4SourceMarkup(state)}
               <div class="mb-4">
                 <h6 class="fw-bold mb-2">Offene Schnittstellen & Lizenzen</h6>
                 <ul class="small mb-0">
@@ -1803,7 +2139,7 @@ function updateMapMarkers(state) {
   state.markerMap.clear();
 
   state.filteredPois.forEach(poi => {
-    if (!poi.lat || !poi.lng || isNaN(poi.lat) || isNaN(poi.lng)) return;
+    if (!validCoordinates(poi.lat, poi.lng)) return;
 
     const svgHtml = createSvgPin("poi", poi.wineCategories);
     const pinIcon = L.divIcon({
@@ -1822,7 +2158,7 @@ function updateMapMarkers(state) {
         <div class="d-flex flex-wrap gap-1 mb-2">
           ${renderWineCardBadges(poi)}
         </div>
-        <button class="btn btn-sm btn-primary w-100 py-1" onclick="window.swOpenDetail_${u}('${escapeHtml(poi.id)}')">
+        <button class="btn btn-sm btn-primary w-100 py-1" data-sw-action="open-detail" data-sw-poi-id="${escapeHtml(poi.id)}">
           Details ansehen
         </button>
       </div>
@@ -1840,7 +2176,7 @@ function updateMapMarkers(state) {
 
   // Bounds anpassen wenn Punkte vorhanden
   if (state.filteredPois.length > 0 && state.map) {
-    const validCoords = state.filteredPois.filter(p => p.lat && p.lng).map(p => [p.lat, p.lng]);
+    const validCoords = state.filteredPois.filter(p => validCoordinates(p.lat, p.lng)).map(p => [p.lat, p.lng]);
     if (validCoords.length > 0) {
       validCoords.push([state.lat, state.lng]);
       state.map.fitBounds(validCoords, { padding: [80, 80], maxZoom: 13 });
@@ -1865,7 +2201,7 @@ function focusPoiOnMap(state, poiId) {
     state.clusterGroup.zoomToShowLayer(marker, () => {
       marker.openPopup();
     });
-  } else if (poi.lat && poi.lng) {
+  } else if (validCoordinates(poi.lat, poi.lng)) {
     state.map.setView([poi.lat, poi.lng], 15);
   }
 }
@@ -1908,7 +2244,7 @@ function renderDrawerList(state) {
   let html = "";
   pagePois.forEach(poi => {
     html += `
-      <div class="sw-clean-card" onclick="window.swFocusPoi_${u}('${escapeHtml(poi.id)}')">
+      <div class="sw-clean-card" role="button" tabindex="0" aria-label="${escapeHtml(poi.name)} auf der Karte anzeigen" data-sw-action="focus-poi" data-sw-poi-id="${escapeHtml(poi.id)}">
         ${poi.imageUrl ? `
           <img src="${escapeHtml(poi.imageUrl)}" class="sw-card-thumb" alt="${escapeHtml(poi.name)}" loading="lazy">
         ` : `
@@ -1925,7 +2261,7 @@ function renderDrawerList(state) {
             </div>
           </div>
           <div class="sw-card-btn-row">
-            <button class="sw-btn-detail-link" onclick="event.stopPropagation(); window.swOpenDetail_${u}('${escapeHtml(poi.id)}')">
+            <button class="sw-btn-detail-link" data-sw-action="open-detail" data-sw-poi-id="${escapeHtml(poi.id)}">
               Details ansehen &raquo;
             </button>
           </div>
@@ -1962,13 +2298,14 @@ function renderCatalogGrid(state) {
     return;
   }
 
-  let html = "";
-  // Zeige im Katalog bis zu 60 Ziele auf einmal
-  const catalogPois = state.filteredPois.slice(0, 60);
+  let html = state.sourceLimitReached
+    ? '<div class="sw-source-limit-notice" role="status">Die DZT-Abfrage liefert höchstens 300 Einträge; möglicherweise gibt es weitere. „Alle“ umfasst den geladenen Bestand.</div>'
+    : "";
+  const catalogPois = state.filteredPois;
 
   catalogPois.forEach((poi, idx) => {
     html += `
-      <div class="sw-catalog-card" role="button" tabindex="0" onclick="window.swOpenDetail_${u}('${escapeHtml(poi.id)}')">
+      <div class="sw-catalog-card" role="button" tabindex="0" aria-label="Details zu ${escapeHtml(poi.name)} öffnen" data-sw-action="open-detail" data-sw-poi-id="${escapeHtml(poi.id)}">
         <div class="sw-catalog-img-wrap">
           ${poi.imageUrl ? `
             <img src="${escapeHtml(poi.imageUrl)}" class="sw-catalog-img" alt="${escapeHtml(poi.name)}" ${idx < 12 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"'} onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\'w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted fs-1\\'>🍷</div>'">
@@ -1987,10 +2324,10 @@ function renderCatalogGrid(state) {
             ${renderWineCardBadges(poi)}
           </div>
           <div class="sw-catalog-actions">
-            <button class="btn btn-sm btn-outline-primary flex-grow-1" onclick="event.stopPropagation(); window.swFocusPoi_${u}('${escapeHtml(poi.id)}')">
+            <button class="btn btn-sm btn-outline-primary flex-grow-1" data-sw-action="focus-poi" data-sw-poi-id="${escapeHtml(poi.id)}">
               Auf Karte
             </button>
-            <button class="btn btn-sm btn-primary flex-grow-1" onclick="event.stopPropagation(); window.swOpenDetail_${u}('${escapeHtml(poi.id)}')">
+            <button class="btn btn-sm btn-primary flex-grow-1" data-sw-action="open-detail" data-sw-poi-id="${escapeHtml(poi.id)}">
               Details
             </button>
           </div>
@@ -2037,11 +2374,7 @@ function openDetailModal(state, poiId) {
             ${poi.distanceKm !== null ? ` &bull; <strong>${poi.distanceKm} km entfernt</strong>` : ""}
           </div>
         </div>
-        ${poi.imageCopyright || poi.imageLicense ? `
-          <div class="sw-detail-hero-license">
-            Bild: ${escapeHtml(poi.imageCopyright || "DZT")} ${poi.imageLicense ? `(${escapeHtml(poi.imageLicense)})` : ""}
-          </div>
-        ` : ""}
+        ${renderImageRightsMarkup(poi.images && poi.images[0])}
       </div>
     ` : `
       <div class="modal-header border-0 pb-0">
@@ -2082,11 +2415,11 @@ function openDetailModal(state, poiId) {
               <h6 class="fw-bold mb-2">Kontakt & Navigation</h6>
               <div class="small text-muted mb-2">
                 ${poi.telephone ? `<div class="mb-1"><strong>Tel:</strong> <a href="tel:${escapeHtml(poi.telephone)}" class="text-decoration-none">${escapeHtml(poi.telephone)}</a></div>` : ""}
-                ${poi.url ? `<div class="mb-1"><strong>Web:</strong> <a href="${escapeHtml(poi.url)}" target="_blank" rel="noopener noreferrer" class="text-decoration-none text-truncate d-inline-block mw-100">${escapeHtml(poi.url)}</a></div>` : ""}
-                ${poi.hasMenu ? `<div class="mb-1"><strong>Karte/Weine:</strong> <a href="${escapeHtml(poi.hasMenu)}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">Speise- & Weinkarte ansehen ↗</a></div>` : ""}
+                ${poi.url ? `<div class="mb-1"><strong>Web:</strong> ${safeHttpUrl(poi.url) ? `<a href="${escapeHtml(safeHttpUrl(poi.url))}" target="_blank" rel="noopener noreferrer" class="text-decoration-none text-truncate d-inline-block mw-100">${escapeHtml(poi.url)}</a>` : `<span class="text-truncate d-inline-block mw-100">${escapeHtml(poi.url)}</span>`}</div>` : ""}
+                ${poi.hasMenu ? `<div class="mb-1"><strong>Karte/Weine:</strong> ${safeHttpUrl(poi.hasMenu) ? `<a href="${escapeHtml(safeHttpUrl(poi.hasMenu))}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">Speise- & Weinkarte ansehen ↗</a>` : `<span class="text-decoration-none">Speise- & Weinkarte ansehen ↗</span>`}</div>` : ""}
               </div>
             </div>
-            ${(poi.lat && poi.lng) ? `
+            ${validCoordinates(poi.lat, poi.lng) ? `
               <a href="https://www.google.com/maps/dir/?api=1&destination=${poi.lat},${poi.lng}" 
                  target="_blank" rel="noopener noreferrer" 
                  class="btn btn-sm btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-1 mt-2">
@@ -2096,6 +2429,8 @@ function openDetailModal(state, poiId) {
           </div>
         </div>
       </div>
+
+      ${renderDataRights(poi)}
 
       <!-- ODTA Rohdaten Akkordeon -->
       <div class="accordion mb-2" id="${u}-accordion-raw">
@@ -2108,7 +2443,7 @@ function openDetailModal(state, poiId) {
           <div id="${u}-collapse-raw" class="accordion-collapse collapse" data-bs-parent="#${u}-accordion-raw">
             <div class="accordion-body p-2">
               <pre class="p-2 mb-2 bg-white rounded border small" style="max-height: 200px; overflow-y: auto;"><code>${escapeHtml(rawJson)}</code></pre>
-              <button class="btn btn-sm btn-outline-secondary py-1" onclick="navigator.clipboard.writeText(${JSON.stringify(rawJson)}); this.textContent='Kopiert!';">
+              <button class="btn btn-sm btn-outline-secondary py-1" data-sw-copy="${escapeHtml(rawJson)}">
                 In Zwischenablage kopieren
               </button>
             </div>
@@ -2156,7 +2491,7 @@ function openDetailModal(state, poiId) {
     const heroWrap = modalContent.querySelector(`#${u}-detail-hero`);
     if (heroWrap) {
       heroWrap.addEventListener("click", (e) => {
-        if (e.target.closest(".sw-detail-close-btn") || e.target.closest(".sw-detail-hero-close") || e.target.closest(".btn-close")) return;
+        if (e.target.closest("a") || e.target.closest(".sw-detail-close-btn") || e.target.closest(".sw-detail-hero-close") || e.target.closest(".btn-close")) return;
         openLightbox(poi, 0);
       });
     }
@@ -2179,7 +2514,8 @@ function openLightbox(poi, initialIndex = 0) {
   let currentIndex = initialIndex;
   if (currentIndex < 0 || currentIndex >= images.length) currentIndex = 0;
 
-  // Vorhandenes Lightbox-Element entfernen falls vorhanden
+  // Vorhandene Galerie samt Tastatur-Handler bereinigen
+  if (typeof window.__swActiveLightboxCleanup === "function") window.__swActiveLightboxCleanup();
   const existing = document.getElementById("sw-lightbox-overlay");
   if (existing) existing.remove();
 
@@ -2204,7 +2540,7 @@ function openLightbox(poi, initialIndex = 0) {
     <div class="sw-lightbox-bottom-bar">
       <div class="sw-lightbox-title">${escapeHtml(poi.name)}</div>
       <div class="sw-lightbox-caption">
-        ${(images[currentIndex].copyright || images[currentIndex].license) ? `Bild: ${escapeHtml(images[currentIndex].copyright || "DZT")} ${images[currentIndex].license ? `(${escapeHtml(images[currentIndex].license)})` : ""}` : ""}
+        ${renderImageRightsMarkup(images[currentIndex])}
       </div>
     </div>
   `;
@@ -2257,11 +2593,7 @@ function openLightbox(poi, initialIndex = 0) {
       if (counterEl && images.length > 1) {
         counterEl.textContent = `${currentIndex + 1} / ${images.length}`;
       }
-      if (captionEl) {
-        captionEl.textContent = (nextItem.copyright || nextItem.license)
-          ? `Bild: ${escapeHtml(nextItem.copyright || "DZT")} ${nextItem.license ? `(${escapeHtml(nextItem.license)})` : ""}`
-          : "";
-      }
+      if (captionEl) captionEl.innerHTML = renderImageRightsMarkup(nextItem);
 
       // Sofortige Positionierung am Einstiegspunkt ohne Transition
       imgEl.style.transition = "none";
@@ -2294,11 +2626,25 @@ function openLightbox(poi, initialIndex = 0) {
     }, 120);
   }
 
+  let lightboxRemovalTimer = null;
+  let keydownAttached = false;
+  function removeLightboxKeydown() {
+    if (!keydownAttached) return;
+    document.removeEventListener("keydown", handleKeydown);
+    keydownAttached = false;
+  }
+  function cleanupLightbox() {
+    removeLightboxKeydown();
+    if (lightboxRemovalTimer !== null) clearTimeout(lightboxRemovalTimer);
+    if (lightbox && lightbox.parentNode) lightbox.remove();
+    if (window.__swActiveLightboxCleanup === cleanupLightbox) window.__swActiveLightboxCleanup = null;
+  }
   function closeLightbox() {
     lightbox.classList.remove("sw-lightbox-open");
-    document.removeEventListener("keydown", handleKeydown);
-    setTimeout(() => {
+    removeLightboxKeydown();
+    lightboxRemovalTimer = setTimeout(() => {
       if (lightbox && lightbox.parentNode) lightbox.remove();
+      if (window.__swActiveLightboxCleanup === cleanupLightbox) window.__swActiveLightboxCleanup = null;
     }, 250);
   }
 
@@ -2313,6 +2659,8 @@ function openLightbox(poi, initialIndex = 0) {
   }
 
   document.addEventListener("keydown", handleKeydown);
+  keydownAttached = true;
+  window.__swActiveLightboxCleanup = cleanupLightbox;
 
   // Buttons & Backdrop
   const closeBtn = lightbox.querySelector(".sw-lightbox-close-btn");
@@ -2545,6 +2893,14 @@ if (typeof document !== "undefined") {
 // Hilfsfunktionen & Error Rendering
 // ===========================================================================
 
+function renderCoordinateError(root, error) {
+  if (!root) return;
+  root.innerHTML = `<div class="container py-5"><div class="alert alert-warning" role="alert">
+    <h2 class="h5">Standort kann nicht bestimmt werden</h2>
+    <p class="mb-0">${escapeHtml(error && error.message ? error.message : "Bitte Ort oder Koordinaten prüfen.")}</p>
+  </div></div>`;
+}
+
 function renderErrorMessage(state, message) {
   const u = state.uid;
   state.root.innerHTML = `
@@ -2557,6 +2913,19 @@ function renderErrorMessage(state, message) {
       </div>
     </div>
   `;
+}
+
+// Nur http(s)-URLs als Linkziele zulassen (Portfolio-Muster, Audit F-110-Klasse):
+// escapeHtml allein verhindert keine "javascript:"- oder "data:"-Schemata in href.
+function safeHttpUrl(value) {
+  const s = String(value || "").trim();
+  if (!/^https?:\/\//i.test(s)) return "";
+  try {
+    const url = new URL(s);
+    return (url.protocol === "http:" || url.protocol === "https:") && url.hostname ? s : "";
+  } catch (_) {
+    return "";
+  }
 }
 
 function escapeHtml(str) {

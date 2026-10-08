@@ -1,8 +1,7 @@
 {
   "seitentitel": "Weingüter & Weingenuss Vaihingen an der Enz & Umgebung",
   "titel": "Weingüter & Weingenuss",
-  "icon": "assets/odas-app-icon.svg",
-  "sprache": "de",
+  "icon": "../assets/odas-app-icon.svg",
   "standardSprache": "de",
   "bannerTitel": "Weingüter & Weingenuss",
   "bannerUntertitel": "Winzerhöfe, Vinotheken & Besenwirtschaften in unserer Region",
@@ -11,39 +10,19 @@
   "longitude": "8.9564",
   "radiusKm": "25",
   "standardFilter": "alle",
-  "proxyAktiv": "nein",
-  "datenStand": "Stand: Abruf beim DZT Knowledge Graph",
+  "datenStand": "",
   "kpiKontext1": "Gesamtzahl der im ausgewählten Umkreis gefundenen Weinorte.",
   "kpiKontext2": "Weingüter und Winzerhöfe mit eigenem Weinbau und Flaschenverkauf.",
   "kpiKontext3": "Traditionelle, meist saisonal geöffnete Besen- und Straußwirtschaften.",
   "kpiKontext4": "Moderne Vinotheken und gemütliche Weinstuben zum Einkehren und Verkosten.",
-  "datenquelleHinweis": "<p>Die Daten stammen aus dem offenen <strong>Knowledge Graph der Deutschen Zentrale für Tourismus (DZT)</strong> und basieren auf der standardisierten Schema.org-Klasse <code>schema:Winery</code>. Sie werden unter offenen Lizenzen (z. B. CC BY, CC0) bereitgestellt.</p>",
-  "weiterfuehrendeLinks": "<ul><li><a href=\"https://open-data-germany.org/\" target=\"_blank\" rel=\"noopener\">Open Data Germany (DZT)</a></li><li><a href=\"https://open-data-app-store.de/\" target=\"_blank\" rel=\"noopener\">Open Data App Store</a></li></ul>",
+  "datenquelleHinweis": "<p>Die App selektiert <code>schema:Winery</code> aus dem <strong>DZT Knowledge Graph</strong>. Die Erlebnis-Kategorien werden aus Namen und Beschreibungen abgeleitet und können unvollständig sein. Karte, Liste, Katalog und Kennzahlen zeigen den geladenen Bestand von höchstens 300 Orten. Datensatz- und Bildlizenzen gelten jeweils für das zugehörige Objekt.</p>",
+  "weiterfuehrendeLinks": "<ul><li><a href=\"https://open-data-germany.org/\" target=\"_blank\" rel=\"noopener noreferrer\">Open Data Germany (DZT)</a></li><li><a href=\"https://open-data-app-store.de/\" target=\"_blank\" rel=\"noopener noreferrer\">Open Data App Store</a></li></ul>",
   "kontakt": [
     "_multiline_",
     "<p>Sie haben Fragen, Hinweise oder Verbesserungsvorschläge zu dieser App? Wenden Sie sich gern an den Betreiber des Open Data Portals.</p>",
     "<p>Telefon: <a href='tel:+49711310093100'>0711 31009-3100</a><br>E-Mail: <a href='mailto:info@ondics.de'>info@ondics.de</a></p>"
   ],
-  "beschreibung": [
-    "<p>Herzlich willkommen in unserer Weinregion! Mit der App <strong>Weingüter &amp; Weingenuss</strong> laden wir Bürgerinnen, Bürger und Gäste ein, die Vielfalt der regionalen Weinkultur, Winzerhöfe, Vinotheken und traditionellen Ausschankorte zu entdecken.</p>",
-    "<p>Unsere Anwendung bereitet die offenen Daten des Knowledge Graph der Deutschen Zentrale für Tourismus (DZT) zielgerichtet für unsere Region auf – übersichtlich auf einer interaktiven Karte, mit Schnellfiltern und in einer filterbaren Übersicht.</p>",
-    "<h3>Für wen ist diese App?</h3>",
-    "<p>Die App richtet sich an alle Weinfreundinnen und Weinfreunde, Genießer:innen, Ausflugsgäste sowie Tourist:innen, die regionale Betriebe ohne lange Recherche direkt finden möchten. Spezielle Vorkenntnisse sind nicht erforderlich.</p>",
-    "<h2>Methodik</h2>",
-    "<p>Die App fragt für die ausgewählte Gemeinde und den gewählten Umkreis gezielt Betriebe der Schema.org-Klasse <code>schema:Winery</code> aus dem DZT Knowledge Graph ab. Eine clientseitige Klassifizierung ordnet die Fundstellen nach Typen wie Weingut, Vinothek, Besen- oder Straußwirtschaft, Weinstube und Weinproben.</p>",
-    "<h2>Datenquelle</h2>",
-    "<ul>",
-    "<li><strong>Open Data Portal:</strong> <a href=\"https://open-data-app-store.de/\" target=\"_blank\" rel=\"noopener\">Open Data App Store</a></li>",
-    "<li><strong>Datensatz:</strong> <a href=\"https://open-data-germany.org/\" target=\"_blank\" rel=\"noopener\">DZT Knowledge Graph (schema:Winery)</a></li>",
-    "<li><strong>Ressource:</strong> <a href=\"https://proxy.opendatagermany.io/api/ts/v1/kg/sparql\" target=\"_blank\" rel=\"noopener\">DZT SPARQL-Endpunkt</a></li>",
-    "</ul>",
-    "<h2>Open Data App</h2>",
-    "<p>Diese Anwendung basiert auf offenen Schnittstellen und ist Teil des Open Data App Stores.</p>",
-    "<ul>",
-    "<li><a href=\"https://open-data-app-store.de/\" target=\"_blank\" rel=\"noopener\">Open Data App Store</a></li>",
-    "<li><a href=\"https://github.com/open-data-apps\" target=\"_blank\" rel=\"noopener\">Open Data Apps auf GitHub</a></li>",
-    "</ul>"
-  ],
+  "beschreibung": "<p>Die App <strong>Weingüter &amp; Weingenuss</strong> macht Weinorte aus dem Knowledge Graph der Deutschen Zentrale für Tourismus (DZT) auf einer Karte, in einer Ergebnisliste und in einem Foto-Katalog zugänglich.</p>\n<p>Für wen ist diese App? Bürgerinnen, Bürger, Urlaubsgäste und Weininteressierte können ohne besondere Datenkenntnisse nach regionalen Betrieben und Angeboten suchen.</p>\n<h2>Methodik</h2>\n<p>Die Umkreisabfrage selektiert ausschließlich <code>schema:Winery</code>, nicht Begriffe wie „Wein“ im gesamten Datenbestand. Anschließend werden Weingüter, Vinotheken, Besen- und Straußwirtschaften, Weinstuben und Weinproben anhand von Namen und Beschreibungen heuristisch zugeordnet. Diese abgeleiteten Kategorien sind keine amtliche oder vom Betrieb bestätigte Klassifikation.</p>\n<p>Je Abfrage werden höchstens 300 Weinorte geladen. Filter, Kennzahlen, Karte, Liste und Katalog beziehen sich auf diesen geladenen Bestand, nicht auf sämtliche Betriebe der Region. Bei Erreichen der Grenze wird auf die mögliche Unvollständigkeit hingewiesen. Ein kleinerer Radius kann die Auswahl eingrenzen.</p>\n<p>Explizite Betreiberkoordinaten bestimmen das Zentrum. Ohne diese nutzt die App ein begrenztes lokales Ortsverzeichnis mit 242 Schlüsseln und bei Bedarf Nominatim. Ein nicht auflösbarer Ort führt zu einem Hinweis statt einer stillen Ersatzregion. Der Datenabruf kann bis zu zwei Stunden innerhalb der Browsersitzung zwischengespeichert werden.</p>\n<p>Datensatz- und Bildrechte werden getrennt angezeigt; ein Bild benötigt einen eigenen ausreichenden Nachweis. Die lokale Entwicklung verwendet deutlich gekennzeichnete synthetische Beispieldaten. Fehler im ODAS-Datenabruf werden nicht durch solche Demodaten ersetzt.</p>\n<h2>Datenquelle</h2>\n<ul><li><strong>Open Data Portal:</strong> <a href=\"https://open-data-germany.org/\" target=\"_blank\" rel=\"noopener noreferrer\">Open Data Germany</a></li><li><strong>Datensatz:</strong> <a href=\"https://open-data-germany.org/\" target=\"_blank\" rel=\"noopener noreferrer\">DZT Knowledge Graph</a></li><li><strong>Ressource:</strong> <a href=\"https://proxy.opendatagermany.io/api/ts/v1/kg/sparql\" target=\"_blank\" rel=\"noopener noreferrer\">DZT SPARQL-Endpunkt</a></li></ul>\n<p>Der DZT-Endpunkt ist authentifiziert. In der laufenden ODAS-App erfolgt der Abruf ausschließlich über das <code>/dzt</code>-Relay; der Schlüssel bleibt serverseitig.</p>\n<h2>Open Data App</h2>\n<ul><li><a href=\"https://open-data-app-store.de/\" target=\"_blank\" rel=\"noopener noreferrer\">Open Data App Store</a></li><li><a href=\"https://github.com/open-data-apps\" target=\"_blank\" rel=\"noopener noreferrer\">Open Data Apps auf GitHub</a></li><li><a href=\"https://github.com/open-data-apps/oda-weingueter\" target=\"_blank\" rel=\"noopener noreferrer\">Repository und Dokumentation</a></li></ul>",
   "impressum": [
     "_multiline_",
     "<h2>Anbieter</h2>",
@@ -53,13 +32,10 @@
     "<h2>Kontakt</h2>",
     "<p>Telefon: 0711 31009-3100<br>E-Mail: <a href='mailto:info@ondics.de'>info@ondics.de</a></p>"
   ],
-  "datenschutz": [
-    "<p>Die Weingenuss-App verarbeitet keine personenbezogenen Daten von Besucher:innen. Kartenkacheln werden datenschutzfreundlich von OpenStreetMap geladen.</p>",
-    "<p>Datenabrufe der Weingüter erfolgen über den gesicherten Store-Relay ohne Übertragung von Browserdaten an Dritte.</p>"
-  ],
+  "datenschutz": "<p>Die App verwendet kein Tracking und fragt keinen GPS-Standort ab. Maßgeblich sind ergänzend die Datenschutzangaben des jeweiligen Portalbetreibers.</p>\n<p>Alle für die Darstellung benötigten Programmbibliotheken werden mit der App aus <code>app/vendor/</code> ausgeliefert; dafür werden keine externen Bibliotheksserver kontaktiert.</p>\n<p>DZT-Daten werden ausschließlich über das <code>/dzt</code>-Relay der ODAS-App-Instanz geladen. Der DZT-API-Schlüssel bleibt im Store. Der Browser sendet dabei keine direkte DZT-API-Anfrage.</p>\n<p>Beim Aufruf kontaktierte Drittanbieter:</p>\n<ul><li>**OpenStreetMap (<code>*.tile.openstreetmap.org</code>):** Kartenkacheln werden direkt aus dem Browser geladen. Dabei erhält der Kartendienst die IP-Adresse und technische Angaben der Verbindung.</li><li><strong>Bildanbieter der angezeigten DZT-Datensätze:</strong> Freigegebene Vorschaubilder und Fotos können automatisch von ihren jeweiligen Bildhosts geladen werden. Auch diese Anbieter erhalten die IP-Adresse und technische Angaben der Verbindung. Die konkreten Bild- und Quellverweise sind am Bildnachweis erreichbar.</li></ul>\n<ul><li><strong>Nominatim (<code>nominatim.openstreetmap.org</code>):</strong> Wenn keine Betreiberkoordinaten vorliegen und der konfigurierte Ort im lokalen Verzeichnis fehlt, wird der Ortsname direkt an diesen Dienst zur Koordinatensuche übertragen. Dabei fallen ebenfalls IP-Adresse und technische Verbindungsdaten an.</li></ul>\n<p>Externe Websites und Routenplaner (Google Maps) werden erst nach einem Linkklick geöffnet; Telefonlinks werden erst auf Nutzeraktion an die Telefonanwendung übergeben.</p>\n<p>Ortsauflösungen und DZT-Antworten können im <code>sessionStorage</code> dieser Browsersitzung gespeichert werden. DZT-Antworten werden bis zu zwei Stunden wiederverwendet. Die App speichert damit keinen GPS-Verlauf.</p>",
   "fusszeile": "© 2026 | App und Daten: DZT Knowledge Graph & ODAS | Entwicklung: Ondics GmbH",
   "brandingCSS": "",
-  "brandingCSSFile": "../assets/branding.css",
+  "brandingCSSFile": "",
   "urlDaten": "https://open-data-germany.org/",
   "apiurls": [
     {

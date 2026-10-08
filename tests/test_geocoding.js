@@ -1,87 +1,96 @@
 const assert = require("assert");
-const fs = require("fs");
-const path = require("path");
-
-// Wir laden resolveCoordinates aus app/app.js bzw. testen die Logik isoliert
-const appJsPath = path.join(__dirname, "../app/app.js");
-const appJsCode = fs.readFileSync(appJsPath, "utf-8");
-
-// Hilfsfunktion zum Extrahieren von resolveCoordinates aus app.js
-let resolveCoordinates;
-try {
-  const sandbox = {
-    console,
-    process,
-    require,
-    __dirname: path.join(__dirname, "../app"),
-    sessionStorage: {
-      _data: {},
-      getItem(k) { return this._data[k] || null; },
-      setItem(k, v) { this._data[k] = String(v); }
-    },
-    window: {},
-    document: { readyState: "complete", addEventListener: () => {} }
-  };
-  const vm = require("vm");
-  // Wir führen app.js in sandbox aus oder laden die Hilfsfunktionen
-  vm.createContext(sandbox);
-  vm.runInContext(appJsCode, sandbox);
-  resolveCoordinates = sandbox.resolveCoordinates || sandbox.window.resolveCoordinates;
-} catch (e) {
-  // Wenn noch nicht implementiert, ist resolveCoordinates undefined
-}
+const { loadRuntime } = require("./runtime.cjs");
 
 async function runTests() {
-  console.log("--- TEST: 3-Stufen-Geocoding (TDD) ---");
-  assert.strictEqual(typeof resolveCoordinates, "function", "resolveCoordinates must be a function in app/app.js");
+  const requested = [];
+  const app = loadRuntime({
+    fetch: async (url) => {
+      requested.push(String(url));
+      if (url === "../assets/gemeinden.json") {
+        return { ok: true, json: async () => ({ "burladingen": [48.2917, 9.1122], "tübingen": [48.5216, 9.0576] }) };
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    },
+  });
 
-  // Test 1: Explizite Koordinaten in configdata (Stufe 1)
-  const res1 = await resolveCoordinates("Burladingen", { latitude: "48.1111", longitude: "9.2222" });
-  assert.strictEqual(res1.source, "config", "Stufe 1: source should be 'config'");
-  assert.strictEqual(res1.lat, 48.1111, "Stufe 1: lat should match config");
-  assert.strictEqual(res1.lng, 9.2222, "Stufe 1: lng should match config");
-  console.log("  ✅ Test 1: Explizite Koordinaten in configdata (Stufe 1)");
+  const explicit = await app.resolveCoordinates("Burladingen", { latitude: "48.1111", longitude: "9.2222" });
+  assert.strictEqual(explicit.source, "config");
+  assert.strictEqual(explicit.lat, 48.1111);
+  assert.strictEqual(explicit.lng, 9.2222);
+  assert.strictEqual(requested.length, 0, "vollständige explizite Koordinaten umgehen Geocoding");
 
-  // Test 2: Offline-Lookup via gemeinden.json (Stufe 2)
-  const res2 = await resolveCoordinates("Burladingen", { latitude: "", longitude: "" });
-  assert.strictEqual(res2.source, "offline", "Stufe 2: source should be 'offline' for Burladingen");
-  assert(Math.abs(res2.lat - 48.2917) < 0.01, "Stufe 2: lat should be ~48.2917");
-  assert(Math.abs(res2.lng - 9.1122) < 0.01, "Stufe 2: lng should be ~9.1122");
-  console.log("  ✅ Test 2: Offline-Lookup für Burladingen (Stufe 2)");
+  const zero = await app.resolveCoordinates("Nullinsel", { latitude: "0", longitude: "0" });
+  assert.strictEqual(zero.lat, 0, "gültige Null-Koordinaten werden akzeptiert");
+  assert.strictEqual(zero.lng, 0);
 
-  // Test 2b: Case-Insensitive & Whitespace
-  const res2b = await resolveCoordinates("  tÜBiNgEn  ", {});
-  assert.strictEqual(res2b.source, "offline", "Stufe 2b: should find Tübingen case-insensitively");
-  assert(Math.abs(res2b.lat - 48.5216) < 0.05, "Stufe 2b: Tübingen lat check");
-  console.log("  ✅ Test 2b: Case-Insensitive Offline-Lookup");
+  await assert.rejects(
+    app.resolveCoordinates("Burladingen", { latitude: "48.1", longitude: "" }),
+    /Latitude.*gemeinsam|Koordinaten.*gemeinsam|beide Koordinaten/i,
+    "ein unvollständiges Koordinatenpaar ist ein Konfigurationsfehler",
+  );
+  await assert.rejects(app.resolveCoordinates("Burladingen", { latitude: "91", longitude: "9" }), /ungültig|Bereich/i);
+  await assert.rejects(app.resolveCoordinates("Burladingen", { latitude: "48x", longitude: "9" }), /ungültig|Zahl/i);
+  assert.strictEqual(requested.length, 0, "ungültige explizite Koordinaten werden nicht durch Geocoding verdeckt");
 
-  // Test 3: Unbekannter Ort -> Nominatim Fallback (Stufe 3)
-  const mockFetchNominatim = async (url) => {
-    return {
-      ok: true,
-      json: async () => [{ lat: "52.5200", lon: "13.4050" }]
-    };
-  };
-  const res3 = await resolveCoordinates("UnbekannteMusterstadt999", {}, mockFetchNominatim);
-  assert.strictEqual(res3.source, "nominatim", "Stufe 3: source should be 'nominatim'");
-  assert.strictEqual(res3.lat, 52.52, "Stufe 3: lat should match Nominatim");
-  assert.strictEqual(res3.lng, 13.405, "Stufe 3: lng should match Nominatim");
-  console.log("  ✅ Test 3: Unbekannter Ort ruft Nominatim ab (Stufe 3)");
+  const offline = await app.resolveCoordinates("  TÜBINGEN  ", {});
+  assert.strictEqual(offline.source, "offline");
+  assert.strictEqual(offline.lat, 48.5216);
+  assert.strictEqual(requested[0], "../assets/gemeinden.json", "Gemeindelookup hat einen deterministischen App-Assetpfad");
 
-  // Test 4: Fehlgeschlagener Abruf -> Stabiler Fallback
-  const mockFetchFail = async () => {
-    throw new Error("Network offline");
-  };
-  const res4 = await resolveCoordinates("VollkommenUnbekannt12345", {}, mockFetchFail);
-  assert.strictEqual(res4.source, "fallback", "Stufe 4: source should be 'fallback' on error");
-  assert.strictEqual(typeof res4.lat, "number", "Stufe 4: lat must be number");
-  assert.strictEqual(typeof res4.lng, "number", "Stufe 4: lng must be number");
-  console.log("  ✅ Test 4: Netzwerkfehler fällt stabil auf Default zurück");
+  const nominatimCalls = [];
+  const online = loadRuntime({
+    fetch: async (url) => {
+      nominatimCalls.push(String(url));
+      if (url === "../assets/gemeinden.json") return { ok: false, json: async () => ({}) };
+      return { ok: true, json: async () => [{ lat: "52.5200", lon: "13.4050" }] };
+    },
+  });
+  const nominatim = await online.resolveCoordinates("UnbekannteMusterstadt999", {});
+  assert.strictEqual(nominatim.source, "nominatim");
+  assert.strictEqual(nominatim.lat, 52.52);
+  assert.strictEqual(nominatim.lng, 13.405);
+  assert.ok(nominatimCalls[1].startsWith("https://nominatim.openstreetmap.org/search?"));
 
-  console.log("✅ All Geocoding tests PASSED!");
+  const failed = loadRuntime({
+    console: { ...console, warn() {} },
+    fetch: async (url) => {
+      if (url === "../assets/gemeinden.json") return { ok: false, json: async () => ({}) };
+      throw new Error("Network offline");
+    },
+  });
+  await assert.rejects(failed.resolveCoordinates("VollkommenUnbekannt12345", {}), /konnte.*nicht.*aufgelöst|Standort/i);
+
+  const emptyNominatim = loadRuntime({
+    fetch: async (url) => url === "../assets/gemeinden.json"
+      ? { ok: false, json: async () => ({}) }
+      : { ok: true, json: async () => [] },
+  });
+  await assert.rejects(emptyNominatim.resolveCoordinates("Nirgendsstadt", {}), /konnte.*nicht.*aufgelöst|Standort/i);
+
+  const flatPath = loadRuntime({
+    window: { location: { hostname: "example.org", pathname: "/index.html" } },
+    fetch: async (url) => {
+      assert.strictEqual(url, "assets/gemeinden.json", "flache App-Basis nutzt assets/ statt ../assets/");
+      return { ok: true, json: async () => ({ "musterort": [51, 10] }) };
+    },
+  });
+  assert.strictEqual((await flatPath.resolveCoordinates("Musterort", {})).source, "offline");
+
+  const invalidApp = loadRuntime({
+    document: { body: { classList: { add() { throw new Error("Fullscreen darf nicht aktiviert werden"); }, remove() {}, contains() { return false; } }, style: { removeProperty() {} }, appendChild() {} } },
+    fetch: async (url) => url === "../assets/gemeinden.json"
+      ? { ok: false, json: async () => ({}) }
+      : { ok: true, json: async () => [] },
+  });
+  const root = { innerHTML: "" };
+  await invalidApp.app({ ort: "Nirgendsstadt" }, root);
+  assert.match(root.innerHTML, /Standort|Koordinaten/);
+  assert.doesNotMatch(root.innerHTML, /sw-fullscreen-wrapper/);
+
+  console.log("✅ test_geocoding: echte Runtime mit injiziertem Fetch, ohne stillen Burladingen-Fallback");
 }
 
-runTests().catch(err => {
-  console.error("❌ Test failed:", err.message);
-  process.exit(1);
+runTests().catch((error) => {
+  console.error("❌ Geocoding test failed:", error);
+  process.exitCode = 1;
 });

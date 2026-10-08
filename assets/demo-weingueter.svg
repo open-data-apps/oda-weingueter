@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-labelledby="title desc">
+  <title id="title">Synthetische Weinlandschaft</title>
+  <desc id="desc">Gezeichnete Weinberge und ein fiktives Weingut. Keine Fotografie und kein realer Betrieb. Illustration von Ondics GmbH, MIT-Lizenz.</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#f8eee2"/><stop offset="1" stop-color="#ead7c2"/></linearGradient>
+    <linearGradient id="hill" x2="0" y2="1"><stop stop-color="#52725a"/><stop offset="1" stop-color="#254335"/></linearGradient>
+  </defs>
+  <rect width="960" height="600" fill="url(#sky)"/>
+  <circle cx="745" cy="142" r="57" fill="#e4bb76"/>
+  <path d="M0 294Q215 159 428 291T960 252V600H0Z" fill="#b7be96"/>
+  <path d="M0 373Q278 219 542 327T960 310V600H0Z" fill="#7e926d"/>
+  <path d="M0 478Q345 287 960 415V600H0Z" fill="url(#hill)"/>
+  <g stroke="#c7d0a0" stroke-width="10" fill="none" opacity=".75">
+    <path d="M110 600Q286 402 550 355"/><path d="M251 600Q397 421 605 365"/>
+    <path d="M423 600Q526 442 669 382"/><path d="M609 600Q665 458 745 396"/>
+    <path d="M800 600Q803 483 838 411"/>
+  </g>
+  <g transform="translate(172 215)">
+    <rect x="18" y="87" width="213" height="127" rx="4" fill="#f8f0df"/>
+    <path d="M0 88L124 0L247 88Z" fill="#762b42"/>
+    <rect x="45" y="118" width="38" height="40" rx="3" fill="#53685d"/>
+    <rect x="165" y="118" width="38" height="40" rx="3" fill="#53685d"/>
+    <path d="M101 214V155a24 24 0 0 1 48 0v59" fill="#762b42"/>
+    <rect x="87" y="102" width="76" height="22" rx="11" fill="#e1c599"/>
+  </g>
+  <rect x="28" y="26" width="276" height="40" rx="20" fill="#fffaf2" opacity=".94"/>
+  <text x="48" y="52" font-family="sans-serif" font-size="18" fill="#762b42">Illustration · synthetische Demo</text>
+</svg>

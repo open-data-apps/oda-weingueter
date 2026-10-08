@@ -1,372 +1,434 @@
 [
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/2e6aea01-6074-4feb-b5a5-ab64af034b7c",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/01",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Vinothek Vaihingen",
-    "schema:description": "Wein- und Sektverkauf, Wein- und Sektproben. Die Vinothek Vaihingen wurde als 'Weinsüden Vinothek' ausgezeichnet. Hier präsentieren sich Spitzenweingüter aus Vaihingen an der Enz mit preisgekrönten Tropfen zur Verkostung und zum Einkauf.",
+    "schema:name": "Demo-Weingut Sonnenhang",
+    "schema:description": "Fiktiver Winzerhof mit Weinverkauf und Weinprobe. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
+      "@type": "schema:GeoCoordinates",
       "schema:latitude": "48.9328",
       "schema:longitude": "8.9564"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Marktplatz 2",
-      "schema:addressLocality": "Vaihingen an der Enz",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "71665"
+      "schema:streetAddress": "Fiktive Beispielgasse 1",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:url": "https://www.vinothek-vaihingen.de",
-    "schema:telephone": "07042 18235",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://mein.toubiz.de/api/v1/media/b7a4deb9-3d6d-45f8-9d95-64357167ab8d/view",
-      "schema:copyrightNotice": "Land der 1000 Hügel - Kraichgau-Stromberg",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/9d4066b2-ae34-407e-bc24-d049406a8262",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/02",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Weinausschank Wengert Häusle | Wachtstetter",
-    "schema:description": "Leckere Weine und pfiffige Snacks für den kleinen Appetit am Wengert Häusle des Weingut Wachtstetter. Idyllisch in den Weinbergen gelegen mit herrlichem Blick über das Zabergäu – ideal für eine genussvolle Pause bei gutem Wetter.",
+    "schema:name": "Demo-Vinothek am Marktplatz",
+    "schema:description": "Fiktive Vinothek mit Weinverkauf und Verkostung. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "49.0628",
-      "schema:longitude": "8.9832"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9448",
+      "schema:longitude": "8.9564"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Michelbacher Straße 8",
-      "schema:addressLocality": "Pfaffenhofen",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "74397"
+      "schema:streetAddress": "Fiktive Beispielgasse 2",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:url": "https://www.wachtstetter.de",
-    "schema:telephone": "07046 2162",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://mein.toubiz.de/api/v1/media/44d05cc0-aeed-11ee-abea-00163e2945d0/view",
-      "schema:copyrightNotice": "Neckar-Zaber-Tourismus e.V.",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/997ab799-4be5-4228-b8ee-f6cd57acfb60",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/03",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Vollmers Traube",
-    "schema:description": "Rustikale Weinstube mit gutbürgerlicher Küche aus regionalen Produkten. Abwechslungsreiche Saisonkarte, Weine vom familieneigenen Weingut, Schnapsbrennerei, Weinverkauf und Weinproben.",
+    "schema:name": "Demo-Besenwirtschaft Rebenlaube",
+    "schema:description": "Fiktive saisonale Besenwirtschaft. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "48.9612",
-      "schema:longitude": "9.1305"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9568",
+      "schema:longitude": "8.9564"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Löchgauer Str. 13",
-      "schema:addressLocality": "Bietigheim-Bissingen",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "74321"
+      "schema:streetAddress": "Fiktive Beispielgasse 3",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:url": "https://www.vollmers-traube.de",
-    "schema:telephone": "07142 41188",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://mein.toubiz.de/api/v1/media/9d31ff95-e14d-49d4-bc48-4032a13a35dc/view",
-      "schema:copyrightNotice": "Kraichgau-Stromberg Tourismus e.V.",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/fb7447af-f49a-495d-b275-ea94e1f90020",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/04",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Besenwirtschaft Sonnenfeldhof",
-    "schema:description": "Komm vorbei in die gemütliche Besenwirtschaft Sonnenfeldhof und genieße klassische Besen-Köstlichkeiten mit einem Glas Wein in herzlicher Atmosphäre. Echte Besenkultur mitten in Sulzfeld mit Weinen aus Baden.",
+    "schema:name": "Demo-Weinstube am Hügel",
+    "schema:description": "Fiktive Weinstube mit Ausschank. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "49.1022",
-      "schema:longitude": "8.8558"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9688",
+      "schema:longitude": "8.9564"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Eppinger Weg 4",
-      "schema:addressLocality": "Sulzfeld",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "75056"
+      "schema:streetAddress": "Fiktive Beispielgasse 4",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:telephone": "07269 1354",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://mein.toubiz.de/api/v1/media/ad3f2cc7-e186-4793-b19a-e1527365c743/view",
-      "schema:copyrightNotice": "Sonnenfeldhof Weinstube",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/bfaefcd9-ad2a-48fc-9e8f-f19f8705e645",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/05",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Besenwirtschaft Krug",
-    "schema:description": "Urig-fränkische Besenwirtschaft und Straußwirtschaft mit traditioneller Winzervesper und hauseigenen Weinen im Taubertal.",
+    "schema:name": "Demo-Weingut Talblick",
+    "schema:description": "Fiktives Weingut mit Kellerführung und Verkostung. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "49.6698",
-      "schema:longitude": "9.5212"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9328",
+      "schema:longitude": "8.9814"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Bronnbacher Straße 6a",
-      "schema:addressLocality": "Külsheim",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "97900"
+      "schema:streetAddress": "Fiktive Beispielgasse 5",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:telephone": "09345 6112",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80",
-      "schema:copyrightNotice": "Besenwirtschaft Krug",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/9e846412-3997-4901-8bcb-c4f1f4926127",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/06",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Weingut Oesterlein \"Hecke\"",
-    "schema:description": "Mehrmals im Jahr öffnen wir unsere 'Hecke' für Sie. Wir begrüßen Sie in unserer gemütlichen Weinstube, die Ihnen auch für Weinproben zur Verfügung steht. Breite Auswahl an Schoppenweinen und fränkischen Köstlichkeiten.",
+    "schema:name": "Demo-Vinothek Rot & Weiß",
+    "schema:description": "Fiktive Weinhandlung mit Probierstube. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "49.7651",
-      "schema:longitude": "9.6242"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9448",
+      "schema:longitude": "8.9814"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Am Oberen Tor 9",
-      "schema:addressLocality": "Dertingen",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "97877"
+      "schema:streetAddress": "Fiktive Beispielgasse 6",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:url": "https://www.weingut-oesterlein.de",
-    "schema:telephone": "09397 259",
-    "schema:hasMenu": "https://www.weingut-oesterlein.de",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=800&q=80",
-      "schema:copyrightNotice": "Familie Klüpfel",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/c4bd9d72-122b-43e8-a35e-bdba92433611",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/07",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Mayerhöfle",
-    "schema:description": "In der ältesten Weinstube Tübingens in Familienbesitz (seit 1891) genießen Einheimische und Gäste ausgewählte Weine der Region Württemberg in geselliger und fröhlicher Runde.",
+    "schema:name": "Demo-Straußwirtschaft Herbstzeit",
+    "schema:description": "Fiktive Straußwirtschaft mit regionalem Angebot. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "48.5196",
-      "schema:longitude": "9.0538"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9568",
+      "schema:longitude": "8.9814"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Haaggasse 8",
-      "schema:addressLocality": "Tübingen",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "72070"
+      "schema:streetAddress": "Fiktive Beispielgasse 7",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:url": "https://www.mayerhoefle.de",
-    "schema:telephone": "07071 22802",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://mein.toubiz.de/api/v1/media/bd330ffa-e695-445c-9909-b2921997a943/view",
-      "schema:copyrightNotice": "Verkehrsverein Tübingen",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/307d9b00-a114-4453-8717-09e6a1f70df8",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/08",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Weinstube Pfohl - Zum Küfer Fritz",
-    "schema:description": "Leckerer Wein, dazu passender Käse und stimmungsvolles Ambiente im ältesten Stadtviertel von Konstanz. Weinproben und Verkostungen vom Bodensee in uriger Umgebung.",
+    "schema:name": "Demo-Weinstube Abendsonne",
+    "schema:description": "Fiktive Weinstube mit Weinprobe. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "47.6628",
-      "schema:longitude": "9.1764"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9688",
+      "schema:longitude": "8.9814"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Salmannsweilergasse 7",
-      "schema:addressLocality": "Konstanz",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "78462"
+      "schema:streetAddress": "Fiktive Beispielgasse 8",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:telephone": "07531 23467",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://images.unsplash.com/photo-1543007630-9710e4a00a20?auto=format&fit=crop&w=800&q=80",
-      "schema:copyrightNotice": "Bodensee Tourismus",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/6b79e552-ff93-43c6-9bb9-1138d5a59fd9",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/09",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Weinstube Hintertürle",
-    "schema:description": "Qualitätsvolle Weine, gemütliche Atmosphäre und leckere Speisen: Die Weinstube Hintertürle im historischen Stadtkern verwöhnt mit erlesener Auswahl an Bodenseeweinen.",
+    "schema:name": "Demo-Winzerhof Morgenrot",
+    "schema:description": "Fiktiver Winzerhof mit Flaschenverkauf. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "47.6635",
-      "schema:longitude": "9.1748"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9328",
+      "schema:longitude": "9.0064"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Konradigasse 3",
-      "schema:addressLocality": "Konstanz",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "78462"
+      "schema:streetAddress": "Fiktive Beispielgasse 9",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:telephone": "07531 16677",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=800&q=80",
-      "schema:copyrightNotice": "Konstanz Tourismus",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://data.rlp-tourismus.de/api/v4/universal/7f53f350-4992-4083-aea8-1501e42eefbe",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/10",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
-      "https://schema.org/Place",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Weingut Killmeyer",
-    "schema:description": "Qualitäts- und Prädikatweine aus eigenem Anbau. Weinverkauf ab Hof, Weinverkostungen und Kellerführungen an der Südlichen Weinstraße.",
+    "schema:name": "Demo-Vinothek Traubenlese",
+    "schema:description": "Fiktive Vinothek mit Tasting-Angebot. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "49.2014",
-      "schema:longitude": "8.0312"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9448",
+      "schema:longitude": "9.0064"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Kanalstr. 12",
-      "schema:addressLocality": "Albersweiler",
-      "schema:addressRegion": "Rheinland-Pfalz",
-      "schema:postalCode": "76857"
+      "schema:streetAddress": "Fiktive Beispielgasse 10",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:url": "https://www.weingut-killmeyer.de",
-    "schema:telephone": "06345 3421",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://data.rlp-tourismus.de/asset/a89bbd10-0ba2-47d1-8f41-7b45d2e4de5a/2JPfFtzncVe8r1hZabNl7FaUeUPdwXRVwOFwzJVw4xw/1785927274/default/weingut_volker_killmeyer.jpg",
-      "schema:copyrightNotice": "CC BY-SA Verein SÜW Annweiler e.V.",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/88b432a1-e356-42bb-8109-1a76ef492d01",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/11",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Weingut Eißler Steinbachhof",
-    "schema:description": "Ökologischer Weinbau in malerischer Einzellage. Weinverkauf, individuelle Weinproben und exklusive Veranstaltungen rund um die Rebe im Stromberg.",
+    "schema:name": "Demo-Besenwirtschaft Lindenhof",
+    "schema:description": "Fiktive Besenwirtschaft mit Ausschank. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "49.0084",
-      "schema:longitude": "8.9815"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9568",
+      "schema:longitude": "9.0064"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Steinbachhof 1",
-      "schema:addressLocality": "Vaihingen an der Enz",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "71665"
+      "schema:streetAddress": "Fiktive Beispielgasse 11",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:url": "https://www.weingut-eissler.de",
-    "schema:telephone": "07042 22396",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=800&q=80",
-      "schema:copyrightNotice": "Weingut Eißler",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   },
   {
-    "@id": "https://mein.toubiz.de/api/v1/article/77c321b0-d445-41cc-8218-2b87ef583c02",
+    "@context": {
+      "schema": "https://schema.org/"
+    },
+    "@id": "https://example.org/odas-demo/weingueter/12",
     "@type": [
-      "https://schema.org/FoodEstablishment",
-      "https://schema.org/LocalBusiness",
       "https://schema.org/Winery"
     ],
-    "schema:name": "Weingut Sonnenhof",
-    "schema:description": "Familiengeführtes Traditionsweingut in Gündelbach mit herrlicher Aussichtslage. Weinausschank, Gutsverkauf und Weinproben inmitten steiler Rebhänge.",
+    "schema:name": "Demo-Weingut Rebenbogen",
+    "schema:description": "Fiktives Weingut mit Weinprobe und Führung. Synthetischer Testeintrag für die lokale Entwicklung; kein realer Betrieb und keine Empfehlung.",
     "schema:geo": {
-      "@type": "https://schema.org/GeoCoordinates",
-      "schema:latitude": "49.0152",
-      "schema:longitude": "8.9642"
+      "@type": "schema:GeoCoordinates",
+      "schema:latitude": "48.9688",
+      "schema:longitude": "9.0064"
     },
     "schema:address": {
       "@type": "schema:PostalAddress",
-      "schema:streetAddress": "Sonnenhof 1",
-      "schema:addressLocality": "Vaihingen an der Enz",
-      "schema:addressRegion": "Baden-Württemberg",
-      "schema:postalCode": "71665"
+      "schema:streetAddress": "Fiktive Beispielgasse 12",
+      "schema:postalCode": "00000",
+      "schema:addressLocality": "Demoregion"
     },
-    "schema:url": "https://www.sonnenhof-weingut.de",
-    "schema:telephone": "07042 22533",
-    "schema:isAccessibleForFree": true,
+    "schema:license": "https://opensource.org/license/mit",
+    "schema:creditText": "Ondics GmbH",
+    "schema:sdPublisher": {
+      "@type": "schema:Organization",
+      "schema:name": "Ondics GmbH",
+      "schema:url": "https://www.ondics.de/"
+    },
     "schema:image": {
       "@type": "schema:ImageObject",
-      "schema:contentUrl": "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=800&q=80",
-      "schema:copyrightNotice": "Weingut Sonnenhof",
-      "schema:license": "https://creativecommons.org/licenses/by-sa/4.0/"
+      "schema:contentUrl": "assets/demo-weingueter.svg",
+      "schema:copyrightNotice": "Ondics GmbH",
+      "schema:license": "https://opensource.org/license/mit",
+      "schema:url": "https://github.com/open-data-apps/oda-weingueter"
     }
   }
 ]

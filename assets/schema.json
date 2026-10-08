@@ -1,88 +1,182 @@
 {
   "$schema": "https://frictionlessdata.io/schemas/table-schema.json",
+  "title": "Weingüter – normalisiertes Darstellungsmodell",
+  "description": "Beschreibt die von normalizeDztPoi erzeugten Objekte, nicht direkt die SPARQL-Bindings oder die JSON-LD-Demodatei.",
+  "primaryKey": "id",
   "fields": [
     {
       "name": "id",
+      "title": "Quell-ID",
       "type": "string",
-      "description": "Eindeutige URI oder Kennung des Weinorts im DZT Knowledge Graph"
+      "description": "Stabile IRI des DZT-Weinorts bzw. reservierte Beispiel-IRI in der synthetischen Demo.",
+      "constraints": {
+        "required": true
+      }
     },
     {
       "name": "name",
+      "title": "Name",
       "type": "string",
-      "description": "Name des Weinguts, der Vinothek oder Weinstube"
-    },
-    {
-      "name": "type",
-      "type": "string",
-      "description": "Schema.org Typ (https://schema.org/Winery)"
-    },
-    {
-      "name": "categories",
-      "type": "string",
-      "description": "Klassifizierte Erlebnis-Kategorien (weingut, vinothek, besen, weinstube, probe)"
+      "description": "Bevorzugter verfügbarer Betriebsname."
     },
     {
       "name": "description",
+      "title": "Beschreibung",
       "type": "string",
-      "description": "Ausführliche Beschreibung des Betriebs und Weinsortiments"
+      "description": "Beschreibung aus der Quelle in der gewählten verfügbaren Sprache."
     },
     {
-      "name": "latitude",
+      "name": "lat",
+      "title": "Breitengrad",
       "type": "number",
-      "description": "Geografischer Breitengrad (WGS84)"
+      "description": "WGS84-Breitengrad; ohne Koordinaten kein Kartenpunkt."
     },
     {
-      "name": "longitude",
+      "name": "lng",
+      "title": "Längengrad",
       "type": "number",
-      "description": "Geografischer Längengrad (WGS84)"
+      "description": "WGS84-Längengrad."
     },
     {
       "name": "street",
+      "title": "Straße",
       "type": "string",
-      "description": "Straße und Hausnummer"
+      "description": "Straße und Hausnummer aus der Quelle."
     },
     {
       "name": "postalCode",
+      "title": "Postleitzahl",
       "type": "string",
-      "description": "Postleitzahl"
+      "description": "Postleitzahl; bleibt Text zur Erhaltung führender Nullen."
     },
     {
       "name": "city",
+      "title": "Ort",
       "type": "string",
-      "description": "Gemeinde / Stadt"
+      "description": "Adressort des Betriebs."
+    },
+    {
+      "name": "region",
+      "title": "Region",
+      "type": "string",
+      "description": "Region, soweit in der Quelle vorhanden."
+    },
+    {
+      "name": "wineCategories",
+      "title": "Abgeleitete Erlebnis-Kategorien",
+      "type": "array",
+      "description": "Textheuristik: weingut, vinothek, besen, weinstube, probe; keine bestätigte Klassifikation."
+    },
+    {
+      "name": "category",
+      "title": "Primäre Darstellungskategorie",
+      "type": "string",
+      "description": "Erste abgeleitete Erlebnis-Kategorie zur Kartendarstellung."
+    },
+    {
+      "name": "isWeingut",
+      "title": "Weingut-Merkmal",
+      "type": "boolean",
+      "description": "Aus wineCategories abgeleitet."
+    },
+    {
+      "name": "isVinothek",
+      "title": "Vinothek-Merkmal",
+      "type": "boolean",
+      "description": "Aus wineCategories abgeleitet."
+    },
+    {
+      "name": "isBesen",
+      "title": "Besen-Merkmal",
+      "type": "boolean",
+      "description": "Aus wineCategories abgeleitet."
+    },
+    {
+      "name": "isWeinstube",
+      "title": "Weinstuben-Merkmal",
+      "type": "boolean",
+      "description": "Aus wineCategories abgeleitet."
+    },
+    {
+      "name": "isProbe",
+      "title": "Weinproben-Merkmal",
+      "type": "boolean",
+      "description": "Aus wineCategories abgeleitet."
     },
     {
       "name": "distanceKm",
+      "title": "Luftlinienentfernung",
       "type": "number",
-      "description": "Berechnete Luftlinien-Entfernung zum Instanz-Zentrum in Kilometern"
+      "description": "Auf eine Nachkommastelle gerundete Entfernung zum Instanzzentrum; kein Routenweg."
     },
     {
       "name": "telephone",
+      "title": "Telefonnummer",
       "type": "string",
-      "description": "Telefonnummer des Betriebs"
+      "description": "Telefonangabe der Quelle."
     },
     {
       "name": "url",
+      "title": "Website",
       "type": "string",
-      "format": "uri",
-      "description": "Offizielle Website des Betriebs"
+      "description": "Website des Betriebs, nur sichere HTTP(S)-Ziele werden verlinkt."
     },
     {
       "name": "hasMenu",
+      "title": "Wein- oder Speisekarte",
       "type": "string",
-      "format": "uri",
-      "description": "Link zur Weinkarte / Speisekarte"
+      "description": "Linkziel der Quelle, soweit vorhanden."
     },
     {
       "name": "imageUrl",
+      "title": "Vorschaubild",
       "type": "string",
-      "format": "uri",
-      "description": "URL zum Vorschaubild"
+      "description": "URL des ersten Bildes mit ausreichendem eigenem Rechtenachweis."
     },
     {
-      "name": "license",
+      "name": "imageLicense",
+      "title": "Vorschaubildlizenz",
       "type": "string",
-      "description": "Open Data Lizenz (z. B. CC BY 4.0, CC0)"
+      "description": "Lizenz-URL des ersten freigegebenen Bildes, keine Datensatzlizenz."
+    },
+    {
+      "name": "imageCopyright",
+      "title": "Vorschaubildnachweis",
+      "type": "string",
+      "description": "Bildbezogene Attribution des ersten freigegebenen Bildes."
+    },
+    {
+      "name": "images",
+      "title": "Bilder mit Nachweisen",
+      "type": "array",
+      "description": "Je Bild url, license, copyright und sourceUrl; Rechte sind objektbezogen."
+    },
+    {
+      "name": "creditText",
+      "title": "Datensatz- und Autorenhinweis",
+      "type": "string",
+      "description": "Quellen-Credit und aufgelöste Autorenangaben des Datensatzes; keine Bildlizenz."
+    },
+    {
+      "name": "copyrightNotice",
+      "title": "Datensatz-Rechteinhaberhinweis",
+      "type": "string",
+      "description": "Copyright-Hinweis und aufgelöste Rechteinhaber des Datensatzes, getrennt vom Herausgeber und von Bildrechten."
+    },
+    {
+      "name": "dataLicense",
+      "title": "Datensatzlizenz",
+      "type": "object",
+      "description": "Lizenz-URL und Attribution für den Datensatz, getrennt von Bildrechten."
+    },
+    {
+      "name": "raw",
+      "title": "Quelldaten",
+      "type": "object",
+      "description": "JSON-LD-Struktur des verwendeten Weinorts, nicht das normalisierte Tabellenmodell."
     }
+  ],
+  "missingValues": [
+    ""
   ]
 }
