@@ -92,6 +92,12 @@ Der lokale Container stellt keinen eigenen DZT-Relay bereit. Auf localhost wird 
 
 ## Tests und Paketbau
 
+Die Menütransition lässt sich mit einer vorhandenen Playwright-/Chrome-Installation zusätzlich prüfen (keine zusätzliche App-Abhängigkeit):
+
+```bash
+PLAYWRIGHT_MODULE=/pfad/zur/playwright-installation node --test tests/menu-motion.browser.cjs
+```
+
 ```bash
 make test
 make zip
@@ -145,7 +151,7 @@ Historischer [Prüfnachweis zum Runtime-Stand 1.0.3](tests/evidence/release-read
 | `odas-config/config.json` | Lokaler Konfigurationsspiegel mit gerendertem HTML |
 | `tests/`, `tools/test-package.py` | Runtime-/Sicherheitsregressionen und Paketbautest |
 
-App-Version **1.0.5** (Screenshot-/Metadatenupdate; Laufzeit unverändert), ODAS-Paketformat **2**, Config-API **1**, Dienst `tourismus-odg`.
+App-Version **1.0.6** (native Menüanimation und Berücksichtigung reduzierter Bewegung), ODAS-Paketformat **2**, Config-API **1**, Dienst `tourismus-odg`.
 
 Vorgesehener Repositorypfad: [open-data-apps/oda-weingueter](https://github.com/open-data-apps/oda-weingueter). Erstellen/Pushen des öffentlichen Repositories ist ein eigener Veröffentlichungsschritt. Historische Dev-Portal-Tests ersetzen keine Prüfung einer später geänderten Version.
 

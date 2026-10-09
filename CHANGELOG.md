@@ -4,6 +4,10 @@ Alle wichtigen Änderungen an dieser Open Data App werden in dieser Datei dokume
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und diese App folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## 1.0.6 - 2026-10-09
+- FIX: Burger-Menü verwendet die native Bootstrap-Transition statt einer abrupt anlaufenden eigenen Kurve; reduzierte Bewegung wird nicht mehr durch `!important` überschrieben.
+- TEST: Opt-in-Browserregression für native Menütransition und reduzierte Bewegung ergänzt.
+
 ## 1.0.5 - 2026-10-08
 - DOC: Screenshot-Metadaten um drei aktuelle Desktop- und drei Mobile-Screenshots ergänzt; kein Laufzeitverhalten geändert.
 
