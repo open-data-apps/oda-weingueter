@@ -1,6 +1,6 @@
-# Store-Screenshots – 2026-10-08
+# Store-Screenshots – 2026-10-12
 
-Sechs aktuelle Bilder der App-Version **1.0.5**, jeweils Übersicht, Katalog und Detailansicht. Aufgenommen mit der unveränderten App-Laufzeit in Google Chrome über lokalen Live Server; Schriften, sichtbare Bilder und Kartenkacheln waren geladen und endliche Oberflächenanimationen beendet. Keine Live-Abnahme und keine realen Betriebsempfehlungen.
+Sechs aktuelle Bilder der App-Version **1.0.7**, jeweils Übersicht, Katalog und Detailansicht. Aufgenommen mit der unveränderten App-Laufzeit in Google Chrome über DevTools/CDP und lokalen Live Server; Schriften, sichtbare Bilder und Kartenkacheln waren geladen und endliche Oberflächenanimationen vollständig abgewartet. Keine Live-Abnahme und keine realen Betriebsempfehlungen.
 
 | Motiv | Desktop | Mobile |
 |---|---|---|

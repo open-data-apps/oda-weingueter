@@ -4,6 +4,12 @@ Alle wichtigen Änderungen an dieser Open Data App werden in dieser Datei dokume
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und diese App folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## 1.0.7 - 2026-10-12
+- UI: Burger-Menü und Sekundärnavigation verwenden konsistente Burgunderrot-/Wein-Akzente einschließlich Hover, Tastaturfokus und gedrückter Zustände.
+- UI: Betroffene Burger-/Menübuttons haben mindestens 44px große Bedienflächen; native Menüanimation und reduzierte Bewegung bleiben erhalten.
+- TEST: Echte Chrome-DevTools-Prüfung der Navigation auf Desktop und Mobile.
+- DOC: Mobile-Arbeiten abgeschlossen; sechs aktuelle synthetische Storebilder und Bildnachweise für den Lieferstand 1.0.7 aktualisiert, Runtime unverändert.
+
 ## 1.0.6 - 2026-10-09
 - FIX: Burger-Menü verwendet die native Bootstrap-Transition statt einer abrupt anlaufenden eigenen Kurve; reduzierte Bewegung wird nicht mehr durch `!important` überschrieben.
 - TEST: Opt-in-Browserregression für native Menütransition und reduzierte Bewegung ergänzt.

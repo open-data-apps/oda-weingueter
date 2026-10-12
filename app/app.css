@@ -2,6 +2,12 @@
    Weingüter & Weingenuss ODAS App - Full-Page Map & Modern UI Styles
    ========================================================================== */
 
+:root {
+  --sw-nav-ink: #722F37;
+  --sw-nav-strong: #881337;
+  --sw-nav-tint: #FDF2F4;
+}
+
 /* 1. Fullscreen Canvas Lock (Wenn Startseite aktiv) */
 body.sw-app-fullscreen {
   overflow: hidden !important;
@@ -137,6 +143,34 @@ body.sw-app-fullscreen #main-content {
   align-items: center !important;
   justify-content: center !important;
   font-size: 1.15rem;
+}
+
+.sw-map-top-actions [data-bs-target="#offcanvasNavbar"] {
+  width: 44px !important;
+  height: 44px !important;
+  color: var(--sw-nav-ink);
+  border-color: var(--sw-nav-ink);
+}
+
+.sw-map-top-actions [data-bs-target="#offcanvasNavbar"]:hover,
+.sw-map-top-actions [data-bs-target="#offcanvasNavbar"]:focus-visible,
+.sw-map-top-actions [data-bs-target="#offcanvasNavbar"]:active {
+  color: var(--sw-nav-strong);
+  background: var(--sw-nav-tint);
+}
+
+.sw-map-top-actions [data-bs-target="#offcanvasNavbar"]:focus-visible,
+#offcanvasNavbar .nav-link:focus-visible,
+#offcanvasNavbar .btn-close:focus-visible,
+body:not(.sw-app-fullscreen) .navbar-toggler:focus-visible,
+.sw-secondary-back-link:focus-visible,
+.sw-secondary-body a:focus-visible {
+  outline: 3px solid var(--sw-nav-ink);
+  outline-offset: 3px;
+}
+
+#offcanvasNavbar .btn-close:focus {
+  box-shadow: none;
 }
 
 /* Prominenter Primär-Pill-Button für Fotokatalog */
@@ -1160,7 +1194,10 @@ body.sw-app-fullscreen #main-content {
 }
 
 #offcanvasNavbar .btn-close {
-  background-color: #f1f5f9;
+  min-width: 44px;
+  min-height: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath stroke='%23722F37' stroke-width='1.8' stroke-linecap='round' d='M3 3l10 10M13 3L3 13'/%3E%3C/svg%3E");
+  background-color: var(--sw-nav-tint);
   border-radius: 50%;
   padding: 8px;
   opacity: 0.75;
@@ -1168,7 +1205,7 @@ body.sw-app-fullscreen #main-content {
 }
 #offcanvasNavbar .btn-close:hover {
   opacity: 1;
-  background-color: #e2e8f0;
+  background-color: var(--sw-nav-tint);
   transform: scale(1.05);
 }
 
@@ -1195,23 +1232,26 @@ body.sw-app-fullscreen #main-content {
   padding: 11px 16px;
   font-size: 0.92rem;
   font-weight: 500;
-  color: #334155;
+  color: var(--sw-nav-ink);
+  min-height: 44px;
   border-radius: 12px;
   transition: all 0.15s ease;
   text-decoration: none;
 }
 
-#offcanvasNavbar .navbar-nav .nav-link:hover {
-  color: #0d6efd;
-  background: rgba(13, 110, 253, 0.08);
+#offcanvasNavbar .navbar-nav .nav-link:hover,
+#offcanvasNavbar .navbar-nav .nav-link:focus-visible,
+#offcanvasNavbar .navbar-nav .nav-link:active {
+  color: var(--sw-nav-strong);
+  background: var(--sw-nav-tint);
   transform: translateX(4px);
 }
 
 #offcanvasNavbar .navbar-nav .nav-link.active {
-  background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important;
+  background: var(--sw-nav-ink) !important;
   color: #ffffff !important;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(13, 110, 253, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(114, 47, 55, 0.25) !important;
 }
 
 /* ==========================================================================
@@ -1272,9 +1312,10 @@ body:not(.sw-app-fullscreen) #main-content {
   gap: 8px !important;
   font-weight: 600 !important;
   font-size: 0.9rem !important;
-  color: #1e293b !important;
+  color: var(--sw-nav-ink) !important;
+  min-height: 44px;
   background: #f8fafc !important;
-  border: 1px solid #cbd5e1 !important;
+  border: 1px solid var(--sw-nav-ink) !important;
   border-radius: 9999px !important;
   padding: 8px 18px !important;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
@@ -1284,15 +1325,16 @@ body:not(.sw-app-fullscreen) #main-content {
 }
 
 .sw-secondary-back-link svg {
-  color: #2563eb !important;
+  color: inherit !important;
   transition: transform 0.2s ease !important;
 }
 
-.sw-secondary-back-link:hover {
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-  border-color: #93c5fd !important;
-  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.14) !important;
+.sw-secondary-back-link:hover,
+.sw-secondary-back-link:focus-visible {
+  background: var(--sw-nav-tint) !important;
+  color: var(--sw-nav-strong) !important;
+  border-color: var(--sw-nav-strong) !important;
+  box-shadow: 0 3px 10px rgba(114, 47, 55, 0.14) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -1302,7 +1344,8 @@ body:not(.sw-app-fullscreen) #main-content {
 
 .sw-secondary-back-link:active {
   transform: scale(0.97) !important;
-  background: #dbeafe !important;
+  background: var(--sw-nav-tint) !important;
+  color: var(--sw-nav-strong) !important;
 }
 
 /* Strikte Linksbündigkeit für Inhaltsbereiche auf Sekundärseiten */
@@ -1340,8 +1383,8 @@ body:not(.sw-app-fullscreen) #main-content {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #eff6ff;
-  color: #1e40af;
+  background: var(--sw-nav-tint);
+  color: var(--sw-nav-ink);
   flex-shrink: 0;
 }
 
@@ -1369,10 +1412,16 @@ body:not(.sw-app-fullscreen) #main-content {
 }
 
 .sw-secondary-body a {
-  color: #0d6efd;
+  color: var(--sw-nav-ink);
   text-decoration: underline;
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+.sw-secondary-body a:hover,
+.sw-secondary-body a:focus-visible,
+.sw-secondary-body a:active {
+  color: var(--sw-nav-strong);
 }
 
 .sw-secondary-footer {
@@ -2041,12 +2090,13 @@ body:not(.sw-app-fullscreen) header .row > div:nth-child(3) {
 }
 
 body:not(.sw-app-fullscreen) .navbar-toggler {
-  width: 42px !important;
-  height: 42px !important;
-  min-width: 42px !important;
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  color: var(--sw-nav-ink) !important;
   border-radius: 50% !important;
   background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  border: 1px solid var(--sw-nav-ink) !important;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -2058,9 +2108,12 @@ body:not(.sw-app-fullscreen) .navbar-toggler {
   -webkit-backdrop-filter: blur(8px) !important;
 }
 
-body:not(.sw-app-fullscreen) .navbar-toggler:hover {
-  background: #ffffff !important;
-  border-color: #cbd5e1 !important;
+body:not(.sw-app-fullscreen) .navbar-toggler:hover,
+body:not(.sw-app-fullscreen) .navbar-toggler:focus-visible,
+body:not(.sw-app-fullscreen) .navbar-toggler:active {
+  background: var(--sw-nav-tint) !important;
+  color: var(--sw-nav-strong) !important;
+  border-color: var(--sw-nav-strong) !important;
   transform: scale(1.05) !important;
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12) !important;
 }
@@ -2078,7 +2131,7 @@ body:not(.sw-app-fullscreen) .navbar-toggler .navbar-toggler-icon::after {
   content: "☰";
   font-size: 1.15rem;
   font-weight: 700;
-  color: #334155;
+  color: inherit;
   line-height: 1;
 }
 
@@ -2098,9 +2151,9 @@ body:not(.sw-app-fullscreen) .navbar-toggler .navbar-toggler-icon::after {
     right: 8px !important;
   }
   body:not(.sw-app-fullscreen) .navbar-toggler {
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
   }
 }
 
@@ -2156,7 +2209,7 @@ body:not(.sw-app-fullscreen) .navbar-toggler .navbar-toggler-icon::after {
   display: flex !important;
   align-items: center;
   gap: 8px;
-  color: #2563eb !important;
+  color: var(--sw-nav-ink) !important;
   font-weight: 600;
   cursor: pointer;
   border-radius: 8px;
@@ -2164,8 +2217,11 @@ body:not(.sw-app-fullscreen) .navbar-toggler .navbar-toggler-icon::after {
   transition: background 0.15s ease;
 }
 
-.sw-nav-link-qr:hover {
-  background: #eff6ff !important;
+.sw-nav-link-qr:hover,
+.sw-nav-link-qr:focus-visible,
+.sw-nav-link-qr:active {
+  color: var(--sw-nav-strong) !important;
+  background: var(--sw-nav-tint) !important;
 }
 
 /* Auf mobilen Endgeräten den QR-Code-Menüeintrag im Burger-Menü ausblenden */

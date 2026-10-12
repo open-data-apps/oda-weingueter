@@ -151,7 +151,9 @@ Historischer [Prüfnachweis zum Runtime-Stand 1.0.3](tests/evidence/release-read
 | `odas-config/config.json` | Lokaler Konfigurationsspiegel mit gerendertem HTML |
 | `tests/`, `tools/test-package.py` | Runtime-/Sicherheitsregressionen und Paketbautest |
 
-App-Version **1.0.6** (native Menüanimation und Berücksichtigung reduzierter Bewegung), ODAS-Paketformat **2**, Config-API **1**, Dienst `tourismus-odg`.
+App-Version **1.0.7** (Burgunderrot für Burger-/Menü-/Sekundärnavigation und mindestens 44px große Menübuttons; native Menüanimation/reduzierte Bewegung erhalten), ODAS-Paketformat **2**, Config-API **1**, Dienst `tourismus-odg`.
+
+Die geplanten Mobile-/Navigationskorrekturen sind abgeschlossen. Die sechs Storebilder zeigen den aktuellen Runtime-Stand 1.0.7 mit eigenen synthetischen Daten; siehe [Bildnachweise](assets/SCREENSHOTS.md). Technischer Lieferabschluss und Dev-Prüfung sind von einer ausdrücklichen Produktiv-/Veröffentlichungsfreigabe zu unterscheiden.
 
 Vorgesehener Repositorypfad: [open-data-apps/oda-weingueter](https://github.com/open-data-apps/oda-weingueter). Erstellen/Pushen des öffentlichen Repositories ist ein eigener Veröffentlichungsschritt. Historische Dev-Portal-Tests ersetzen keine Prüfung einer später geänderten Version.
 
