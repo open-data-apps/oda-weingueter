@@ -46,6 +46,17 @@ function onPageLeave(page) {
   document.body.style.removeProperty("overflow");
   document.body.style.removeProperty("padding-right");
 
+  // Unterbrochene Ladungen verwerfen und ihre Karte freigeben; nur die fertig
+  // geladene, gecachte Instanz behält Wrapper und Karte für die Rückkehr.
+  swInstances.forEach((state) => {
+    if (state === window.__swCachedState) return;
+    state.disposed = true;
+    if (state.map) {
+      try { state.map.remove(); } catch (_) {}
+    }
+    state.map = null;
+  });
+
   // Startseiten-Wrapper detachen und im globalen Cache für die blitzschnelle Rückkehr aufbewahren
   const mainContent = document.getElementById("main-content");
   if (mainContent) {
@@ -145,19 +156,27 @@ function validCoordinates(lat, lng) {
   return Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 }
 
+// Gemeinsamer, unveränderlicher Ladecache für alle Instanzen (Lazy-Singleton):
+// nur nach erfolgreichem Laden belegt; Fehlschläge werden nicht gecacht.
 async function loadGemeindenLookup(fetchFn) {
   if (GEMEINDEN_LOOKUP) return GEMEINDEN_LOOKUP;
+  const geladen = await ladeGemeindenVerzeichnis(fetchFn);
+  if (!geladen) return {};
+  GEMEINDEN_LOOKUP = geladen;
+  return GEMEINDEN_LOOKUP;
+}
+
+async function ladeGemeindenVerzeichnis(fetchFn) {
   const effectiveFetch = fetchFn || (typeof fetch !== "undefined" ? fetch : null);
-  if (!effectiveFetch) return {};
+  if (!effectiveFetch) return null;
   try {
     const resp = await effectiveFetch(getOdasAssetPath("gemeinden.json"));
-    if (!resp || !resp.ok) return {};
+    if (!resp || !resp.ok) return null;
     const data = await resp.json();
-    if (!data || typeof data !== "object" || Array.isArray(data)) return {};
-    GEMEINDEN_LOOKUP = data;
-    return GEMEINDEN_LOOKUP;
+    if (!data || typeof data !== "object" || Array.isArray(data)) return null;
+    return data;
   } catch (_) {
-    return {};
+    return null;
   }
 }
 
@@ -2902,17 +2921,150 @@ function renderCoordinateError(root, error) {
 }
 
 function renderErrorMessage(state, message) {
-  const u = state.uid;
-  state.root.innerHTML = `
-    <div class="container py-5 text-center">
-      <div class="alert alert-danger shadow-sm d-inline-block p-4" style="max-width: 600px;">
-        <h4 class="alert-heading fw-bold mb-2">Weingüter konnten nicht geladen werden</h4>
-        <p class="mb-3">${escapeHtml(message)}</p>
-        <hr>
-        <p class="small mb-0 text-muted">Prüfen Sie die Internetverbindung oder die Instanz-Konfiguration im Open Data App Store.</p>
-      </div>
-    </div>
-  `;
+  // Portfolio-Standardfehleranzeige (Variante A, E0–E15) statt eigener Fehlerbox.
+  renderOdasFehler(state.root, new Error(message), {
+    url: getOdasApiUrl(state.config, "dztsparql"),
+    label: "SPARQL-Endpunkt (DZT)",
+    typLabel: "Wissensdatenbank (SPARQL)",
+    erwarteterTyp: "sparql",
+  });
+}
+
+function isKeineDatenquelleKonfiguriert(targetUrl) {
+  const quelle = String(targetUrl || "").trim();
+  return !quelle || /^\{\{.*\}\}$/.test(quelle) || /^<.*>$/.test(quelle);
+}
+
+const TYP_BEZEICHNUNG = {
+  "ckan-dkan-ds": "Tabellen-API mit Daten-ID",
+  "ckan-ps": "Datensatz-API",
+  "ckan-dl": "Datei-Download",
+  "ods21": "Open-Data-Suche (API v2.1)",
+  "wfs": "Kartendienst (WFS)",
+  "sparql": "Wissensdatenbank (SPARQL)",
+  "csv-zip": "Statische Datei"
+}
+
+function validateUrlTypErwartung(url, erwarteterTyp) {
+  const u = String(url || "");
+  if (!erwarteterTyp || isKeineDatenquelleKonfiguriert(u)) return null;
+  const checks = {
+    "ckan-dkan-ds": /\/api\/3\/action\/datastore_search\?resource_id=/i,
+    "ckan-ps": /\/api\/3\/action\/package_show\?id=/i,
+    "ckan-dl": /\/dataset\/.*\/resource\/.*\/download\//i,
+    "ods21": /\/api\/explore\/v2\.1\//i,
+    "wfs": /service=WFS/i,
+    "sparql": /\/api\/ts\/v1\/kg\/sparql/i,
+    "csv-zip": /\.(csv|json|zip)(\?|$)/i
+  };
+  const re = checks[erwarteterTyp];
+  if (!re) return null;
+  if (!re.test(u)) {
+    const soll = TYP_BEZEICHNUNG[erwarteterTyp] || erwarteterTyp;
+    return `Typ passt nicht: erwartet „${soll}", erhalten „${u.slice(0, 60)}…". Prüfen Sie den Hilfe-Tooltip bei „URLs zu Datenressourcen".`;
+  }
+  return null;
+}
+
+function classifyOdasFehler(error, kontext = {}) {
+  const msg = String((error && error.message) || error || "");
+  const url = String(kontext.url || "");
+  const label = String(kontext.label || "Datenressource");
+  const typLabel = String(kontext.typLabel || TYP_BEZEICHNUNG[kontext.erwarteterTyp] || "Datenquelle");
+  if (/Keine Datenquelle konfiguriert/i.test(msg) || isKeineDatenquelleKonfiguriert(url)) {
+    return {
+      kind: "KEINE_QUELLE",
+      titel: "Es ist keine Datenquelle konfiguriert.",
+      hinweis: `Prüfen Sie unter „URLs zu Datenressourcen → ${label}" ob eine gültige ${typLabel}-URL eingetragen ist (Hilfe-Tooltip beachten).`,
+      detail: msg,
+      alertClass: "alert-info"
+    };
+  }
+  if (/Typ passt nicht: erwartet/i.test(msg)) {
+    return {
+      kind: "TYP_MISMATCH",
+      titel: msg,
+      hinweis: `Diese App erwartet ${typLabel}. Korrigieren Sie die URL gemäß Hilfe-Tooltip (Beispiel dort).`,
+      detail: msg,
+      alertClass: "alert-danger"
+    };
+  }
+  if (/URL origin not allowed/i.test(msg)) {
+    return {
+      kind: "PROXY_ORIGIN",
+      titel: "ODAS-Proxy blockiert: Ziel-Origin nicht freigegeben.",
+      hinweis: "Tragen Sie die Ziel-Origin als eigenen Eintrag unter „URLs zu Datenressourcen“ ein oder prüfen Sie proxyAktiv.",
+      detail: msg,
+      alertClass: "alert-danger"
+    };
+  }
+  if (/ODAS-Proxy-Fehler/i.test(msg) || /kein content-String/i.test(msg)) {
+    return {
+      kind: "PROXY_HTTP",
+      titel: msg,
+      hinweis: "Prüfen Sie proxyAktiv und Erreichbarkeit im ODAS-Live-System (lokal 404 ist normal).",
+      detail: msg,
+      alertClass: "alert-danger"
+    };
+  }
+  if (/Direkter Datenabruf fehlgeschlagen/i.test(msg) || /Failed to fetch/i.test(msg)) {
+    const corsHint = /Failed to fetch/i.test(msg) ? " – vermutlich CORS blockiert → im ODAS-Live proxyAktiv=ja." : "";
+    return {
+      kind: "DIREKT_CORS_HTTP",
+      titel: msg,
+      hinweis: `Prüfen Sie URL und CORS der Quelle${corsHint}`,
+      detail: msg,
+      alertClass: "alert-danger"
+    };
+  }
+  if (/liefert kein JSON/i.test(msg) || /HTML-Seite|CSV-|leere Antwort|unlesbaren/i.test(msg)) {
+    return {
+      kind: "PAYLOAD_TYP",
+      titel: msg,
+      hinweis: "Tragen Sie den passenden Endpunkt ein – nicht die Datensatzseite (/dataset/…) – Hilfe-Tooltip beachten.",
+      detail: msg,
+      alertClass: "alert-danger"
+    };
+  }
+  if (/CKAN.*Fehler|success:false/i.test(msg)) {
+    return {
+      kind: "CKAN_API",
+      titel: msg,
+      hinweis: "Prüfen Sie Daten-ID / Datensatz-ID (existiert die Tabelle/Datei noch auf dem Portal?).",
+      detail: msg,
+      alertClass: "alert-danger"
+    };
+  }
+  if (/404|Nicht gefunden/i.test(msg)) {
+    return {
+      kind: "HTTP_404",
+      titel: msg,
+      hinweis: "Ressource/Datensatz auf dem Portal nicht gefunden (404).",
+      detail: msg,
+      alertClass: "alert-danger"
+    };
+  }
+  return {
+    kind: "UNBEKANNT",
+    titel: msg || "Unbekannter Fehler beim Laden.",
+    hinweis: "Prüfen Sie Konfiguration und Erreichbarkeit der Quelle.",
+    detail: msg,
+    alertClass: "alert-danger"
+  };
+}
+
+function renderOdasFehler(container, error, kontext = {}) {
+  if (!container) return;
+  const typWarn = validateUrlTypErwartung(kontext.url, kontext.erwarteterTyp);
+  if (typWarn && !/Typ passt nicht/i.test(String(error && error.message))) {
+    error = new Error(typWarn);
+  }
+  const info = classifyOdasFehler(error, kontext);
+  const url = String(kontext.url || "");
+  const urlZeile = url ? `<p class="mb-1 small text-muted">Konfigurierte URL: <code>${escapeHtml(url.length > 80 ? url.slice(0, 80) + "…" : url)}</code></p>` : "";
+  const titel = kontext.leer ? "Keine Datensätze gefunden." : info.titel;
+  const alertClass = kontext.leer ? "alert-info" : info.alertClass;
+  container.innerHTML = `<div class="alert ${alertClass}" role="alert"><strong>${escapeHtml(titel)}</strong><p class="mb-1">${escapeHtml(info.hinweis)}</p>${urlZeile}<details class="small"><summary>Details</summary><code>${escapeHtml(info.detail || String(error))}</code></details></div>`;
 }
 
 // Nur http(s)-URLs als Linkziele zulassen (Portfolio-Muster, Audit F-110-Klasse):

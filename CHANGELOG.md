@@ -4,6 +4,11 @@ Alle wichtigen Änderungen an dieser Open Data App werden in dieser Datei dokume
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und diese App folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## 1.0.8 - 2026-10-13
+- FIX: Fehler beim Laden zeigen die Portfolio-Standardfehleranzeige (`renderOdasFehler`, Variante A) mit der konfigurierten SPARQL-Quelle statt einer eigenen Fehlerbox.
+- FIX: Wer die Startseite während des Ladens verlässt, verwirft die unterbrochene Ladung; ein späterer Ladefehler überschreibt die Unterseite nicht mehr, eine bereits erzeugte Karte wird freigegeben. Die fertig geladene Instanz bleibt für die schnelle Rückkehr erhalten.
+- CHORE: Ladecache des Gemeindeverzeichnisses als dokumentierter Lazy-Singleton aufgeteilt; Verhalten unverändert.
+
 ## 1.0.7 - 2026-10-12
 - UI: Burger-Menü und Sekundärnavigation verwenden konsistente Burgunderrot-/Wein-Akzente einschließlich Hover, Tastaturfokus und gedrückter Zustände.
 - UI: Betroffene Burger-/Menübuttons haben mindestens 44px große Bedienflächen; native Menüanimation und reduzierte Bewegung bleiben erhalten.
