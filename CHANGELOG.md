@@ -4,6 +4,9 @@ Alle wichtigen Änderungen an dieser Open Data App werden in dieser Datei dokume
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und diese App folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## 1.0.9 - 2026-10-13
+- FIX: Standard-Fehleranzeige gibt präzisere Tipps: ein „Failed to fetch“ ohne Proxy-Kontext erhält einen Netzwerk-Hinweis statt `proxyAktiv`; der 404-Hinweis gilt nur noch für echte HTTP-404-Antworten und nennt den lokal fehlenden Proxy/Relay statt pauschal „Datensatz auf dem Portal nicht gefunden“.
+
 ## 1.0.8 - 2026-10-13
 - FIX: Fehler beim Laden zeigen die Portfolio-Standardfehleranzeige (`renderOdasFehler`, Variante A) mit der konfigurierten SPARQL-Quelle statt einer eigenen Fehlerbox.
 - FIX: Wer die Startseite während des Ladens verlässt, verwirft die unterbrochene Ladung; ein späterer Ladefehler überschreibt die Unterseite nicht mehr, eine bereits erzeugte Karte wird freigegeben. Die fertig geladene Instanz bleibt für die schnelle Rückkehr erhalten.
