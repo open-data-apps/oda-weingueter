@@ -4,6 +4,9 @@ Alle wichtigen Änderungen an dieser Open Data App werden in dieser Datei dokume
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und diese App folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## 1.0.10 - 2026-10-14
+- DOCS: Datenschutzerklärung (Paket und lokale Config) mit verbindlichem Bibliotheken-Baustein und einheitlicher Liste der kontaktierten Drittanbieter (Kartenkacheln, Bildanbieter, Nominatim) versehen; README-Liste angeglichen; Markdown-Reste `**…**` in der lokalen Config behoben. Keine Änderung an der App-Logik.
+
 ## 1.0.9 - 2026-10-13
 - FIX: Standard-Fehleranzeige gibt präzisere Tipps: ein „Failed to fetch“ ohne Proxy-Kontext erhält einen Netzwerk-Hinweis statt `proxyAktiv`; der 404-Hinweis gilt nur noch für echte HTTP-404-Antworten und nennt den lokal fehlenden Proxy/Relay statt pauschal „Datensatz auf dem Portal nicht gefunden“.
 

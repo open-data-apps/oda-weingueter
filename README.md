@@ -115,13 +115,17 @@ python3 ../tools/odas-config-lint/lint.py .
 
 ## Beim Aufruf kontaktierte Drittanbieter
 
-Alle Programmbibliotheken werden aus `app/vendor/` ausgeliefert, ohne CDN-Anfragen.
+Alle Programmbibliotheken werden lokal aus `app/vendor/` ausgeliefert, ohne CDN-Anfragen. Dafür werden beim Aufruf keine externen Server kontaktiert.
 
-- DZT: Browserabruf über den serverseitigen `/dzt`-Relay der App-Instanz; kein direkter DZT-API-Aufruf.
-- `*.tile.openstreetmap.org`: direkte Kartenkacheln; der Dienst erhält IP-Adresse und technische Verbindungsangaben.
-- Bildhosts der freigegebenen DZT-Fotos: direkte automatische Bildabrufe; entsprechende Verbindungsdaten gehen an den jeweiligen Bildanbieter. Konkrete Bild-/Quellverweise stehen am Nachweis.
-- `nominatim.openstreetmap.org`: nur ohne Betreiberkoordinaten und bei lokal unbekanntem Ort; übertragen werden der konfigurierte Ortsname und technische Verbindungsdaten.
-- Google Maps/Betriebswebsites: erst nach Linkklick. Telefonlinks: erst nach Nutzeraktion.
+DZT-Daten werden ausschließlich über den serverseitigen `/dzt`-Relay der App-Instanz geladen; der Browser sendet keinen direkten DZT-API-Aufruf.
+
+Folgende externe Server werden kontaktiert:
+
+- OpenStreetMap (`*.tile.openstreetmap.org`) — Kartenkacheln werden direkt aus dem Browser geladen. Dabei erhält der Kartendienst die IP-Adresse und technische Angaben der Verbindung.
+- Bildanbieter der angezeigten DZT-Datensätze — Freigegebene Vorschaubilder und Fotos können automatisch von ihren jeweiligen Bildhosts geladen werden. Auch diese Anbieter erhalten die IP-Adresse und technische Angaben der Verbindung. Die konkreten Bild- und Quellverweise sind am Bildnachweis erreichbar.
+- Nominatim (`nominatim.openstreetmap.org`) — Wenn keine Betreiberkoordinaten vorliegen und der konfigurierte Ort im lokalen Verzeichnis fehlt, wird der Ortsname direkt an diesen Dienst zur Koordinatensuche übertragen. Dabei fallen ebenfalls IP-Adresse und technische Verbindungsdaten an.
+
+Externe Websites und Routenplaner (Google Maps) werden erst nach einem Linkklick geöffnet; Telefonlinks werden erst auf Nutzeraktion an die Telefonanwendung übergeben.
 
 Die App verwendet kein Tracking und fragt keinen GPS-Standort ab. Browser-Sitzungsspeicherung und externe Verbindungen sind oben beschrieben; ergänzend gelten die Angaben des jeweiligen Portalbetreibers. Eine pauschale Garantie „keine Datenübertragung an Dritte“ wird nicht gegeben.
 
