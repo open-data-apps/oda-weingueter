@@ -4,6 +4,9 @@ Alle wichtigen Änderungen an dieser Open Data App werden in dieser Datei dokume
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und diese App folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## 1.0.12 - 2026-10-15
+- FIX: Kopfzeile bei 360 px ohne Überlauf (Template): Logo- und Burger-Spalte passen sich der Breite an, das Menü-Symbol ragt nicht mehr über den rechten Rand. Keine Änderung an App-Code oder Konfiguration.
+
 ## 1.0.11 - 2026-10-15
 - DOCS: Neue Store-Screenshots: je drei Desktop- (1440 × 1000) und Mobile-Aufnahmen (390 × 844) der aktuellen App, aufgenommen auf der Dev-Instanz. Ersetzt den bisherigen Satz mit synthetischen Demodaten durch Aufnahmen mit echten DZT-Daten; bisherige Bilder nach `docs/screenshots/archive/2026-10-13/` verschoben, `assets/SCREENSHOTS.md` und README angepasst. Keine Änderung an App-Code oder Konfiguration.
 
