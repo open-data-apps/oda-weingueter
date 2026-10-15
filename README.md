@@ -131,14 +131,14 @@ Die App verwendet kein Tracking und fragt keinen GPS-Standort ab. Browser-Sitzun
 
 ## Screenshots
 
-Die sechs Store-Bilder zeigen die Oberfläche mit **gekennzeichneten synthetischen Demodaten**; sie sind kein Live-Abnahmenachweis.
+Die sechs Store-Bilder zeigen die App-Laufzeit 1.0.7 auf der ODAS-Dev-Instanz mit **echten Daten aus dem DZT Knowledge Graph** (13.10.2026); sie sind kein Live-Abnahmenachweis. Für die sichtbaren Fotos liegt kein Einzel-Bildnachweis vor.
 
 | Ansicht | Übersicht | Katalog | Detail |
 |---|---|---|---|
 | Desktop | ![Desktop – Übersicht](assets/Desktop_Screenshot.png) | ![Desktop – Katalog](assets/Desktop_Screenshot_2.png) | ![Desktop – Detail](assets/Desktop_Screenshot_3.png) |
 | Mobile | ![Mobile – Übersicht](assets/Mobile_Screenshot.png) | ![Mobile – Katalog](assets/Mobile_Screenshot_2.png) | ![Mobile – Detail](assets/Mobile_Screenshot_3.png) |
 
-[Bildnachweise](assets/SCREENSHOTS.md).
+[Aufnahme- und Rechtehinweise](assets/SCREENSHOTS.md).
 
 Historischer [Prüfnachweis zum Runtime-Stand 1.0.3](tests/evidence/release-readiness-2026-10-08.md), erstellt vor den späteren Paketupdates und kein Beleg für die aktuellen Screenshots. Version 1.0.4 korrigierte ausschließlich die optionale Branding-CSS-Vorbelegung für den ODAS-Editor; Version 1.0.5 aktualisiert ausschließlich Screenshots und Metadaten.
 
@@ -157,7 +157,7 @@ Historischer [Prüfnachweis zum Runtime-Stand 1.0.3](tests/evidence/release-read
 
 App-Version **1.0.9** (präzisere Fehlertipps; zuvor 1.0.8: Portfolio-Standardfehleranzeige, Freigabe unterbrochener Ladungen; 1.0.7: Burgunderrot für Burger-/Menü-/Sekundärnavigation und mindestens 44px große Menübuttons; native Menüanimation/reduzierte Bewegung erhalten), ODAS-Paketformat **2**, Config-API **1**, Dienst `tourismus-odg`.
 
-Die geplanten Mobile-/Navigationskorrekturen sind abgeschlossen. Die sechs Storebilder zeigen den Runtime-Stand 1.0.7 mit eigenen synthetischen Daten (1.0.8 und 1.0.9 ändern nur Fehler- und Ladepfade, nicht die Ansicht); siehe [Bildnachweise](assets/SCREENSHOTS.md). Technischer Lieferabschluss und Dev-Prüfung sind von einer ausdrücklichen Produktiv-/Veröffentlichungsfreigabe zu unterscheiden.
+Die geplanten Mobile-/Navigationskorrekturen sind abgeschlossen. Die sechs Storebilder zeigen den Runtime-Stand 1.0.7 mit echten DZT-Daten von der Dev-Instanz (1.0.8 und 1.0.9 ändern nur Fehler- und Ladepfade, nicht die Ansicht); siehe [Aufnahme- und Rechtehinweise](assets/SCREENSHOTS.md). Technischer Lieferabschluss und Dev-Prüfung sind von einer ausdrücklichen Produktiv-/Veröffentlichungsfreigabe zu unterscheiden.
 
 Vorgesehener Repositorypfad: [open-data-apps/oda-weingueter](https://github.com/open-data-apps/oda-weingueter). Erstellen/Pushen des öffentlichen Repositories ist ein eigener Veröffentlichungsschritt. Historische Dev-Portal-Tests ersetzen keine Prüfung einer später geänderten Version.
 
