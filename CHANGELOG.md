@@ -4,6 +4,9 @@ Alle wichtigen Änderungen an dieser Open Data App werden in dieser Datei dokume
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und diese App folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## 1.0.13 - 2026-10-27
+- DOCS: Store-Katalogtext ohne Instanz-Platzhalter: Links mit Platzhalterziel erscheinen dort als Text, weil die Katalogseite keine Instanz kennt und Platzhalter nicht auflöst (Live-Befund 27.10.2026). „Über diese App“ in der App bleibt unverändert.
+
 ## 1.0.12 - 2026-10-15
 - FIX: Kopfzeile bei 360 px ohne Überlauf (Template): Logo- und Burger-Spalte passen sich der Breite an, das Menü-Symbol ragt nicht mehr über den rechten Rand. Keine Änderung an App-Code oder Konfiguration.
 

@@ -39,7 +39,12 @@ assert.strictEqual(orientations.filter((orientation) => orientation === "landsca
 assert.strictEqual(orientations.filter((orientation) => orientation === "portrait").length, 3, "drei PNGs müssen Hochformat haben");
 assert.strictEqual(orientations.filter((orientation) => orientation === "square").length, 0, "Screenshots dürfen nicht quadratisch sein");
 
-assert.deepStrictEqual(pkg.beschreibung, pkg["instanz-config"].beschreibung.default, "Beschreibung muss exakt gespiegelt sein");
+const runtimeBeschreibung = pkg["instanz-config"].beschreibung.default;
+assert.strictEqual(pkg.beschreibung.length, runtimeBeschreibung.length, "Katalog- und Runtime-Beschreibung haben gleich viele Zeilen");
+pkg.beschreibung.forEach((zeile, i) => {
+  if (!runtimeBeschreibung[i].includes("{{")) assert.strictEqual(zeile, runtimeBeschreibung[i], `Beschreibungszeile ${i} muss gespiegelt sein`);
+});
+assert.ok(!pkg.beschreibung.join("\n").includes("{{"), "Katalogtext ohne Platzhalter");
 assert.strictEqual(pkg.beschreibung[0], "_multiline_", "Beschreibung beginnt mit _multiline_");
 const markdownText = pkg.beschreibung.slice(1).join("\n");
 assert.ok(!/<[a-z][\s\S]*>/i.test(markdownText), "Markdown enthält keine HTML-Tags");
