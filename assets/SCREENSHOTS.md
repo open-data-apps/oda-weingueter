@@ -14,4 +14,4 @@ Sechs Bilder der App-Laufzeit **1.0.7**, jeweils Übersicht, Katalog und Detaila
 - Kartenmaterial: © [OpenStreetMap-Mitwirkende](https://www.openstreetmap.org/copyright).
 - Gebündelte Bibliotheken/Fonts behalten ihre unter `app/vendor/THIRD-PARTY.md` dokumentierten Rechte.
 
-Der vorherige Satz (12.10.2026, synthetische Demodaten aus `demo-weingueter.json`, siehe `DEMO-DATA.md`) liegt unverändert unter `docs/screenshots/archive/2026-10-13/`. Das Ersetzen von Bildern bereinigt nicht automatisch deren Git-Historie.
+Der vorherige Satz (12.10.2026, synthetische Demodaten aus `demo-weingueter.json`, siehe `DEMO-DATA.md`) ist seit 1.0.14 nicht mehr im Repository; er bleibt über den Git-Tag [`archive/screenshots-2026-10-13`](https://github.com/open-data-apps/oda-weingueter/tree/archive/screenshots-2026-10-13/docs/screenshots/archive/2026-10-13) abrufbar. Das Ersetzen von Bildern bereinigt nicht automatisch deren Git-Historie.

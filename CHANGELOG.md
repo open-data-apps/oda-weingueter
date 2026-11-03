@@ -4,6 +4,9 @@ Alle wichtigen Änderungen an dieser Open Data App werden in dieser Datei dokume
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/) und diese App folgt [Semantic Versioning](https://semver.org/lang/de/).
 
+## 1.0.14 - 2026-11-03
+- DOCS: Alte Store-Screenshots unter `docs/screenshots/archive/2026-10-13/` entfernt; sie bleiben über den Git-Tag `archive/screenshots-2026-10-13` abrufbar.
+
 ## 1.0.13 - 2026-10-27
 - DOCS: Store-Katalogtext ohne Instanz-Platzhalter: Links mit Platzhalterziel erscheinen dort als Text, weil die Katalogseite keine Instanz kennt und Platzhalter nicht auflöst (Live-Befund 27.10.2026). „Über diese App“ in der App bleibt unverändert.
 
